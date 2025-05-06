@@ -13,4 +13,7 @@ interface BookDao {
 
     @Query("DELETE FROM books WHERE userId = :userId")
     suspend fun deleteBooksByUser(userId: String)
+
+    @Insert
+    suspend fun insertBook(book: BookEntity)
 }

@@ -16,6 +16,16 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     private val repository: BookRepository
     val books: StateFlow<List<BookEntity>>
 
+    fun addBook(book: BookEntity) {
+        viewModelScope.launch {
+            try {
+                repository.addBook(book)
+            } catch (e: Exception) {
+                // Tutaj możesz dodać obsługę błędów (np. pokazać snackbar)
+            }
+        }
+    }
+
     init {
         val database = BookDatabase.getDatabase(application)
         repository = BookRepository(application, database)

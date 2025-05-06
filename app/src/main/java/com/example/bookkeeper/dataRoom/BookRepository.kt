@@ -20,6 +20,21 @@ class BookRepository(
         return db.bookDao().getBooksByUser(uid)
     }
 
+    suspend fun addBook(book: BookEntity) {
+        val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
+        val bookWithUserId = book.copy(userId = uid)
+
+        db.bookDao().insertBook(bookWithUserId)
+
+        if (hasInternet(context)) {
+            try {
+                firestore.collection("books").add(bookWithUserId).await()
+            } catch (e: Exception) {
+                // Jeśli synchronizacja się nie uda, książka i tak jest w lokalnej bazie
+            }
+        }
+    }
+
     suspend fun syncBooksFromFirebase() {
         if (!hasInternet(context)) return
 
