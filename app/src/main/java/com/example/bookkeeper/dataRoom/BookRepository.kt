@@ -1,7 +1,6 @@
 package com.example.bookkeeper.dataRoom
 
 import android.content.Context
-import com.example.bookkeeper.userHomeInterface.data.Book
 import com.example.bookkeeper.utils.hasInternet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,7 +23,18 @@ class BookRepository(
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         val bookWithUserId = book.copy(userId = uid)
 
-        db.bookDao().insertBook(bookWithUserId)
+        val syncedBook = if (hasInternet(context)) {
+            try {
+                firestore.collection("books").add(bookWithUserId).await()
+                bookWithUserId.copy(isSynced = true)
+            } catch (e: Exception) {
+                bookWithUserId
+            }
+        } else {
+            bookWithUserId
+        }
+        db.bookDao().insertBook(syncedBook)
+
 
         if (hasInternet(context)) {
             try {
@@ -34,6 +44,23 @@ class BookRepository(
             }
         }
     }
+
+    //synchronizacja baz po dodaniu z reki ksiazki w bazie room
+    suspend fun syncUnsyncedBooks() {
+        if (!hasInternet(context)) return
+
+        val uid = auth.currentUser?.uid ?: return
+        val unsyncedBooks = db.bookDao().getUnsyncedBooks(uid)
+        for (book in unsyncedBooks) {
+            try {
+                firestore.collection("books").add(book).await()
+                db.bookDao().markAsSynced(book.id)
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+
 
     suspend fun syncBooksFromFirebase() {
         if (!hasInternet(context)) return
@@ -57,6 +84,8 @@ class BookRepository(
                 tags = doc.get("tags") as? List<String> ?: emptyList()
             )
         }
+
+
 
         db.bookDao().deleteBooksByUser(uid) // czyść stare dane
         db.bookDao().insertBooks(books)

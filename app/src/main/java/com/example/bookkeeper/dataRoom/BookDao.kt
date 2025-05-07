@@ -16,4 +16,10 @@ interface BookDao {
 
     @Insert
     suspend fun insertBook(book: BookEntity)
+
+    //synchronizacja baz po dodaniu z reki ksiazki w bazie room
+    @Query("SELECT * FROM books WHERE userId = :uid AND isSynced = 0")
+    suspend fun getUnsyncedBooks(uid: String): List<BookEntity>
+    @Query("UPDATE books SET isSynced = 1 WHERE id = :bookId")
+    suspend fun markAsSynced(bookId: Int)
 }

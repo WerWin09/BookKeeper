@@ -37,9 +37,14 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
             initialValue = emptyList()
         )
 
-        // synchronizacja z Firebase, jeśli jest internet
+        // synchronizacja z chmury do lokalnej
         viewModelScope.launch {
             repository.syncBooksFromFirebase()
+        }
+
+        // synchronizacja lokalnych zmian do chmury
+        viewModelScope.launch {
+            repository.syncUnsyncedBooks()
         }
     }
 }
