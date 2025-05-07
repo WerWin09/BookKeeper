@@ -2,25 +2,25 @@ package com.example.bookkeeper.userHomeInterface
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookkeeper.dataRoom.BookEntity
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBookScreen(
+fun ManualAddBookScreen(
     onBack: () -> Unit,
+    onSearchOnline: () -> Unit,
     viewModel: UserBooksViewModel = viewModel()
 ) {
     var title by remember { mutableStateOf("") }
@@ -35,14 +35,15 @@ fun AddBookScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dodaj nową książkę") },
+                title = { Text("Dodaj nową książkę z ręki") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Anuluj",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Anuluj")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSearchOnline) {
+                        Icon(Icons.Default.Search, contentDescription = "Szukaj przez Google Books")
                     }
                 }
             )
@@ -141,10 +142,7 @@ fun AddBookScreen(
             ) {
                 OutlinedButton(
                     onClick = onBack,
-                    modifier = Modifier.padding(end = 8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text("Anuluj")
                 }

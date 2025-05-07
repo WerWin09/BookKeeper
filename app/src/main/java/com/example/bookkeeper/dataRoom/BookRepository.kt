@@ -1,13 +1,14 @@
 package com.example.bookkeeper.dataRoom
 
 import android.content.Context
+import android.util.Log
 import com.example.bookkeeper.utils.hasInternet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
-class BookRepository(
+class BookRepository (
     private val context: Context,
     private val db: BookDatabase,
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
@@ -67,27 +68,40 @@ class BookRepository(
 
         val uid = auth.currentUser?.uid ?: return
 
-        val snapshot = firestore.collection("books")
-            .whereEqualTo("userId", uid)
-            .get()
-            .await()
+        try {
+            val snapshot = firestore.collection("books")
+                .whereEqualTo("userId", uid)
+                .get()
+                .await()
 
-        val books = snapshot.map { doc ->
-            BookEntity(
-                title = doc.getString("title") ?: "",
-                author = doc.getString("author") ?: "",
-                status = doc.getString("status") ?: "",
-                category = doc.getString("category"),
-                description = doc.getString("description"),
-                rating = doc.getLong("rating")?.toInt(),
-                userId = uid,
-                tags = doc.get("tags") as? List<String> ?: emptyList()
-            )
+            val books = snapshot.mapNotNull { doc ->
+                try {
+                    val book = BookEntity(
+                        title = doc.getString("title") ?: "",
+                        author = doc.getString("author") ?: "",
+                        status = doc.getString("status") ?: "",
+                        category = doc.getString("category"),
+                        description = doc.getString("description"),
+                        rating = (doc.get("rating") as? Long)?.toInt(),
+                        userId = doc.getString("userId") ?: "",
+                        tags = (doc.get("tags") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                        isSynced = true
+                    )
+                    Log.d("FirestoreSync", "Załadowano książkę: ${doc.data}")
+                    book
+                } catch (e: Exception) {
+                    Log.e("FirestoreSync", "Błąd przetwarzania dokumentu: ${doc.id}", e)
+                    null
+                }
+            }
+
+            db.bookDao().deleteBooksByUser(uid) // wyczyść stare dane
+            db.bookDao().insertBooks(books)
+            Log.d("FirestoreSync", "Zsynchronizowano ${books.size} książek z Firestore")
+        } catch (e: Exception) {
+            Log.e("FirestoreSync", "Błąd przy pobieraniu danych z Firestore", e)
         }
-
-
-
-        db.bookDao().deleteBooksByUser(uid) // czyść stare dane
-        db.bookDao().insertBooks(books)
     }
+
+
 }

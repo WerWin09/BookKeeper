@@ -1,4 +1,4 @@
-package com.example.bookkeeper.userHomeInterface.addBook
+package com.example.bookkeeper.addBook.addBookGoogleApi
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,22 +35,25 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-class EditImportedBookScreen {
-}
 
+// wyglad ekranu do edycji ksiazek po znalezienu w Google Books
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBookScreen(
+fun EditImportedBookScreen(
     onBack: () -> Unit,
-    viewModel: UserBooksViewModel = viewModel()
+    viewModel: UserBooksViewModel = viewModel(),
+    selectedBook: BookEntity?
 ) {
-    var title by remember { mutableStateOf("") }
-    var author by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf<Int?>(null) }
+    if (selectedBook == null) {
+        Text("Nie wybrano książki.")
+        return
+    }
+
+    var status by remember { mutableStateOf(selectedBook.status) }
+    var rating by remember { mutableStateOf(selectedBook.rating) }
     var statusExpanded by remember { mutableStateOf(false) }
     val statusOptions = listOf("Przeczytana", "W trakcie", "Planowana")
 
@@ -60,18 +63,14 @@ fun AddBookScreen(
                 title = { Text("Dodaj nową książkę") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Anuluj",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Anuluj")
                     }
                 }
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .padding(16.dp)
@@ -79,45 +78,58 @@ fun AddBookScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Tytuł *") },
-                modifier = Modifier.Companion.fillMaxWidth(),
-                singleLine = true
+                value = selectedBook.title,
+                onValueChange = {},
+                label = { Text("Tytuł") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
             )
-
             OutlinedTextField(
-                value = author,
-                onValueChange = { author = it },
-                label = { Text("Autor *") },
-                modifier = Modifier.Companion.fillMaxWidth(),
-                singleLine = true
+                value = selectedBook.author,
+                onValueChange = {},
+                label = { Text("Autor") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+            OutlinedTextField(
+                value = selectedBook.category ?: "",
+                onValueChange = {},
+                label = { Text("Kategoria") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+            OutlinedTextField(
+                value = selectedBook.description ?: "",
+                onValueChange = {},
+                label = { Text("Opis") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                maxLines = 3
             )
 
+            // Edytowalny status
             ExposedDropdownMenuBox(
                 expanded = statusExpanded,
                 onExpandedChange = { statusExpanded = !statusExpanded },
-                modifier = Modifier.Companion.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
                     value = status,
                     onValueChange = {},
                     label = { Text("Status *") },
-                    modifier = Modifier.Companion.menuAnchor(),
                     readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
-                    }
+                    modifier = Modifier.menuAnchor(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) }
                 )
                 ExposedDropdownMenu(
                     expanded = statusExpanded,
                     onDismissRequest = { statusExpanded = false }
                 ) {
-                    statusOptions.forEach { option ->
+                    statusOptions.forEach {
                         DropdownMenuItem(
-                            text = { Text(option) },
+                            text = { Text(it) },
                             onClick = {
-                                status = option
+                                status = it
                                 statusExpanded = false
                             }
                         )
@@ -125,78 +137,42 @@ fun AddBookScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Kategoria") },
-                modifier = Modifier.Companion.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Opis") },
-                modifier = Modifier.Companion.fillMaxWidth(),
-                maxLines = 3
-            )
-
+            // Edytowalna ocena
             OutlinedTextField(
                 value = rating?.toString() ?: "",
                 onValueChange = {
-                    rating = when (val value = it.toIntOrNull()) {
-                        null -> null
-                        in 1..5 -> value
-                        else -> rating
-                    }
+                    rating = it.toIntOrNull()?.takeIf { it in 1..5 }
                 },
                 label = { Text("Ocena (1-5)") },
-                modifier = Modifier.Companion.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Companion.Number),
-                singleLine = true
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
             )
 
             Row(
-                modifier = Modifier.Companion.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Companion.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.Companion.padding(end = 8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) {
+                OutlinedButton(onClick = onBack, modifier = Modifier.padding(end = 8.dp)) {
                     Text("Anuluj")
                 }
 
                 Button(
                     onClick = {
-                        val newBook = BookEntity(
-                            title = title.trim(),
-                            author = author.trim(),
+                        val book = selectedBook.copy(
                             status = status.trim(),
-                            category = category.trim().takeIf { it.isNotEmpty() },
-                            description = description.trim().takeIf { it.isNotEmpty() },
-                            rating = rating,
-                            userId = ""
+                            rating = rating
                         )
-                        viewModel.addBook(newBook)
+                        viewModel.addBook(book)
                         onBack()
                     },
-                    enabled = title.isNotBlank() && author.isNotBlank() && status.isNotBlank()
+                    enabled = status.isNotBlank()
                 ) {
                     Text("Dodaj książkę")
                 }
             }
 
-            Text(
-                text = "* Wymagane pola",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.Companion.padding(top = 8.dp)
-            )
+            Text("* Edytowalne pola", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
         }
     }
 }

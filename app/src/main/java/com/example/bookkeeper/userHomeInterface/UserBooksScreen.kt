@@ -13,6 +13,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import android.util.Log
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,6 +23,14 @@ fun UserBooksScreen(
     onAddBook: () -> Unit  // Dodaj ten parametr
 ) {
     val books by viewModel.books.collectAsStateWithLifecycle()
+
+    LaunchedEffect(books) {
+        Log.d("UserBooksScreen", "Liczba książek w stanie: ${books.size}")
+        books.forEach {
+            Log.d("UserBooksScreen", "Książka: ${it.title} by ${it.author}")
+        }
+    }
+
 
     Scaffold(
         floatingActionButton = {

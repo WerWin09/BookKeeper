@@ -1,8 +1,9 @@
 package com.example.bookkeeper.utils
 
 import com.example.bookkeeper.dataRoom.BookEntity
-import com.example.bookkeeper.googlebooks.GoogleBookItem
+import com.example.bookkeeper.googleBooksApi.GoogleBookItem
 
+// konwertowanie danych z formatu Google Books do formatu lokalnego w BookEntity
 fun mapGoogleBookToBookEntity(item: GoogleBookItem): BookEntity {
     val volume = item.volumeInfo
 
