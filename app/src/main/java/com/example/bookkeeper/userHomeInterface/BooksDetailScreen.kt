@@ -1,0 +1,179 @@
+package com.example.bookkeeper.userHomeInterface
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bookkeeper.dataRoom.BookEntity
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun BookDetailsScreen(
+    bookId: Int?,
+    onBack: () -> Unit,
+    onEdit: (Int) -> Unit,
+    viewModel: UserBooksViewModel
+) {
+    val books by viewModel.books.collectAsStateWithLifecycle()
+    val book = remember(bookId, books) {
+        books.firstOrNull { it.id == bookId }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Szczegóły książki") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Wróć"
+                        )
+                    }
+                },
+                actions = {
+                    if (book != null) {
+                        IconButton(onClick = { onEdit(book.id) }) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edytuj"
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        if (book == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Nie znaleziono książki")
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Header
+                Text(
+                    text = book.title,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Basic info section
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    InfoRow(label = "Autor:", value = book.author)
+                    InfoRow(label = "Status:", value = book.status)
+
+                    book.category?.let {
+                        InfoRow(label = "Kategoria:", value = it)
+                    }
+
+                    book.rating?.let {
+                        InfoRow(
+                            label = "Ocena:",
+                            value = "★".repeat(it) + "☆".repeat(5 - it)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Tags section
+                if (book.tags.isNotEmpty()) {
+                    Text(
+                        text = "Tagi:",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // This is the experimental FlowRow
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        book.tags.forEach { tag ->
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = tag,
+                                    modifier = Modifier.padding(8.dp),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                // Description section
+                book.description?.let { description ->
+                    Text(
+                        text = "Opis:",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            ),
+            modifier = Modifier.widthIn(min = 100.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
+}

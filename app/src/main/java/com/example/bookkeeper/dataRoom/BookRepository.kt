@@ -20,6 +20,21 @@ class BookRepository(
         return db.bookDao().getBooksByUser(uid)
     }
 
+    fun getBooksByCategory(category: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return db.bookDao().getBooksByCategory(uid, category)
+    }
+
+    fun searchBooks(query: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return db.bookDao().searchBooks(uid, query)
+    }
+
+    suspend fun getCategories(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        return db.bookDao().getCategories(uid)
+    }
+
     suspend fun addBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         val bookWithUserId = book.copy(userId = uid)
@@ -33,6 +48,10 @@ class BookRepository(
                 // Jeśli synchronizacja się nie uda, książka i tak jest w lokalnej bazie
             }
         }
+    }
+
+    suspend fun getBookById(bookId: Int): BookEntity? {
+        return db.bookDao().getBookById(bookId)
     }
 
     suspend fun syncBooksFromFirebase() {

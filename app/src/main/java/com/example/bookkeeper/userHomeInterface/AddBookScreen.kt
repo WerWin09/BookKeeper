@@ -31,6 +31,7 @@ fun AddBookScreen(
     var rating by remember { mutableStateOf<Int?>(null) }
     var statusExpanded by remember { mutableStateOf(false) }
     val statusOptions = listOf("Przeczytana", "W trakcie", "Planowana")
+    var tags by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -60,6 +61,14 @@ fun AddBookScreen(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Tytuł *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = tags,
+                onValueChange = { tags = it },
+                label = { Text("Tagi (oddziel przecinkami)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -158,7 +167,8 @@ fun AddBookScreen(
                             category = category.trim().takeIf { it.isNotEmpty() },
                             description = description.trim().takeIf { it.isNotEmpty() },
                             rating = rating,
-                            userId = ""
+                            userId = "",
+                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                         )
                         viewModel.addBook(newBook)
                         onBack()
