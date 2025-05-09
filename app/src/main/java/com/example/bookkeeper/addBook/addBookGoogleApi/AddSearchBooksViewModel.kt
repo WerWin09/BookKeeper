@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.googleBooksApi.GoogleBookItem
+import com.example.bookkeeper.googleBooksApi.GoogleBooksApi
+import com.example.bookkeeper.utils.mapGoogleBookToBookEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -12,13 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-// Retrofit interfejs do Google Books API
-interface GoogleBooksApi {
-    @GET("volumes")
-    suspend fun searchBooks(@Query("q") query: String): GoogleBooksResponse
-}
 
-// Odpowiedź z Google Books API
 data class GoogleBooksResponse(
     val items: List<GoogleBookItem>?
 )
@@ -40,17 +36,30 @@ class SearchBooksViewModel : ViewModel() {
         .build()
         .create(GoogleBooksApi::class.java)
 
-    fun searchBooks(query: String) {
+    fun searchBooks(query: String, onFound: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
-                val response = api.searchBooks(query)
+                val isIsbn = query.matches(Regex("""97[89][\d\- ]{10,}"""))
+                val searchQuery = if (isIsbn) "isbn:$query" else query
+
+                val response = api.searchBooks(searchQuery)
                 _searchResults.value = response.items ?: emptyList()
+
+                if (isIsbn) {
+                    response.items?.firstOrNull()?.let { item ->
+                        _selectedBook.value = mapGoogleBookToBookEntity(item)
+                        _navigateToEdit.value = true
+                        onFound?.invoke()
+                    }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _searchResults.value = emptyList()
             }
         }
     }
+
+
 
     fun setSelectedBookAndNavigate(book: BookEntity) {
         _selectedBook.value = book

@@ -74,8 +74,21 @@ dependencies {
     //hilt
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
+    // OCR - ML Kit Text Recognition
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
+
+
+    // Image Picker (np. PickVisualMedia)
+    implementation ("androidx.activity:activity-ktx:1.8.0")
+    implementation ("androidx.core:core-ktx:1.10.1")
+
+    //composable
     implementation("androidx.navigation:navigation-compose:2.8.9")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+
+    //rozszerzone ikony
+    implementation("androidx.compose.material:material-icons-extended:1.6.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

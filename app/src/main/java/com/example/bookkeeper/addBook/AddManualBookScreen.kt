@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -14,15 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.bookkeeper.dataRoom.BookEntity
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManualAddBookScreen(
-    onBack: () -> Unit,
+    navController: NavController,
+    onBackToHome: () -> Unit,
     onSearchOnline: () -> Unit,
     viewModel: UserBooksViewModel = viewModel()
 ) {
+    var showDialog by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
@@ -35,18 +41,23 @@ fun ManualAddBookScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dodaj nową książkę z ręki") },
+                title = { Text("Dodaj książkę ręcznie") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Anuluj")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onSearchOnline) {
-                        Icon(Icons.Default.Search, contentDescription = "Szukaj przez Google Books")
+                    IconButton(onClick = onBackToHome) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                FloatingActionButton(onClick = onSearchOnline) {
+                    Icon(Icons.Default.Search, contentDescription = "Szukaj przez Google Books")
+                }
+                FloatingActionButton(onClick = { showDialog = true }) {
+                    Icon(Icons.Default.AddAPhoto, contentDescription = "Skanuj ISBN")
+                }
+            }
         }
     ) { padding ->
         Column(
@@ -82,8 +93,8 @@ fun ManualAddBookScreen(
                     value = status,
                     onValueChange = {},
                     label = { Text("Status *") },
-                    modifier = Modifier.menuAnchor(),
                     readOnly = true,
+                    modifier = Modifier.menuAnchor(),
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                     }
@@ -123,13 +134,9 @@ fun ManualAddBookScreen(
             OutlinedTextField(
                 value = rating?.toString() ?: "",
                 onValueChange = {
-                    rating = when (val value = it.toIntOrNull()) {
-                        null -> null
-                        in 1..5 -> value
-                        else -> rating
-                    }
+                    rating = it.toIntOrNull()?.takeIf { it in 0..5 }
                 },
-                label = { Text("Ocena (1-5)") },
+                label = { Text("Ocena (0-5)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true
@@ -141,7 +148,7 @@ fun ManualAddBookScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedButton(
-                    onClick = onBack,
+                    onClick = onBackToHome,
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text("Anuluj")
@@ -159,7 +166,7 @@ fun ManualAddBookScreen(
                             userId = ""
                         )
                         viewModel.addBook(newBook)
-                        onBack()
+                        onBackToHome()
                     },
                     enabled = title.isNotBlank() && author.isNotBlank() && status.isNotBlank()
                 ) {
@@ -174,5 +181,28 @@ fun ManualAddBookScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Wybierz źródło zdjęcia") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    navController.navigate("scanIsbn?source=manualAddBook&input=camera")
+                }) {
+                    Text("Aparat")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    navController.navigate("scanIsbn?source=manualAddBook&input=gallery")
+                }) {
+                    Text("Galeria")
+                }
+            }
+        )
     }
 }

@@ -1,13 +1,12 @@
 package com.example.bookkeeper.googleBooksApi
 
+import com.example.bookkeeper.addBook.addBookGoogleApi.GoogleBooksResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
-import retrofit2.Response
 
-//komunikowanie sie z API Google Books
-interface GoogleBooksApiService {
+interface GoogleBooksApi {
     @GET("volumes")
     suspend fun searchBooks(
         @Query("q") query: String
-    ): Response<GoogleBookResponse>
+    ): GoogleBooksResponse
 }
