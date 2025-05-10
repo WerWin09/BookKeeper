@@ -31,7 +31,10 @@ class UserHomeActivity : ComponentActivity() {
                         composable("userBooks") {
                             UserBooksScreen(
                                 viewModel = userBooksViewModel,
-                                onAddBook = { navController.navigate("manualAddBook") }
+                                onAddBook = { navController.navigate("manualAddBook") },
+                                onBookClick = { bookId ->
+                                    navController.navigate("bookDetails/$bookId")
+                                }
                             )
                         }
                         composable("manualAddBook") {
@@ -84,7 +87,27 @@ class UserHomeActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        composable("bookDetails/{bookId}") { backStackEntry ->
+                            val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
+                            BookDetailsScreen(
+                                bookId = bookId,
+                                onBack = { navController.popBackStack() },
+                                onEdit = { bookId ->
+                                    navController.navigate("editBook/$bookId")
+                                },
+                                viewModel = userBooksViewModel
 
+                            )
+                        }
+                        composable("editBook/{bookId}") { backStackEntry ->
+                            val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
+                            EditBookScreen(
+                                bookId = bookId,
+                                onBack = { navController.popBackStack() },
+                                viewModel = userBooksViewModel
+
+                            )
+                        }
                     }
                 }
             }

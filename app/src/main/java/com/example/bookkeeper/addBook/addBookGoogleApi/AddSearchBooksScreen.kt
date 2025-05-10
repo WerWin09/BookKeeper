@@ -25,7 +25,11 @@ fun SearchBooksScreen(
 ) {
     val results by viewModel.searchResults.collectAsStateWithLifecycle()
     val navigateToEdit by viewModel.navigateToEdit.collectAsStateWithLifecycle()
-    var query by remember { mutableStateOf("") }
+
+    var title by remember { mutableStateOf("") }
+    var author by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+    var publisher by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(navigateToEdit) {
@@ -61,18 +65,57 @@ fun SearchBooksScreen(
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .padding(16.dp)) {
+
             OutlinedTextField(
-                value = query,
-                onValueChange = {
-                    query = it
-                    if (query.length >= 3) {
-                        viewModel.searchBooks(query)
-                    }
-                },
-                label = { Text("Tytuł lub autor") },
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Tytuł") },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            OutlinedTextField(
+                value = author,
+                onValueChange = { author = it },
+                label = { Text("Autor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                label = { Text("Tematyka") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = publisher,
+                onValueChange = { publisher = it },
+                label = { Text("Wydawnictwo") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Button(
+                onClick = {
+                    val queryParts = mutableListOf<String>()
+                    if (title.isNotBlank()) queryParts.add("intitle:$title")
+                    if (author.isNotBlank()) queryParts.add("inauthor:$author")
+                    if (category.isNotBlank()) queryParts.add("subject:$category")
+                    if (publisher.isNotBlank()) queryParts.add("inpublisher:$publisher")
+
+                    val finalQuery = queryParts.joinToString(" ")
+                    if (finalQuery.isNotBlank()) {
+                        viewModel.searchBooks(finalQuery)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 8.dp)
+            ) {
+                Text("Szukaj")
+            }
 
             LazyColumn {
                 items(results) { item ->
@@ -108,6 +151,3 @@ fun SearchBooksScreen(
         )
     }
 }
-
-
-

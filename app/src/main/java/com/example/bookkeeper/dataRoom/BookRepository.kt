@@ -20,6 +20,21 @@ class BookRepository (
         return db.bookDao().getBooksByUser(uid)
     }
 
+    fun getBooksByCategory(category: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return db.bookDao().getBooksByCategory(uid, category)
+    }
+
+    fun searchBooks(query: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return db.bookDao().searchBooks(uid, query)
+    }
+
+    suspend fun getCategories(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        return db.bookDao().getCategories(uid)
+    }
+
     suspend fun addBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         val bookWithUserId = book.copy(userId = uid)
@@ -45,6 +60,11 @@ class BookRepository (
             }
         }
     }
+
+    suspend fun getBookById(bookId: Int): BookEntity? {
+        return db.bookDao().getBookById(bookId)
+    }
+
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
     suspend fun syncUnsyncedBooks() {
