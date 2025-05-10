@@ -13,5 +13,6 @@ data class BookEntity(
     val description: String?,
     val rating: Int?,
     val userId: String,
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val isSynced: Boolean = false
 )
