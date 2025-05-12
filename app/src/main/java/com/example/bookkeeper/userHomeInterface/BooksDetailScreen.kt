@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.material.icons.filled.Delete
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -32,24 +33,52 @@ fun BookDetailsScreen(
         books.firstOrNull { it.id == bookId }
     }
 
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Usunąć książkę?") },
+            text = { Text("Czy na pewno chcesz usunąć tę książkę? Tej operacji nie można cofnąć.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        book?.let { viewModel.deleteBook(it) }
+                        onBack()
+                    }
+                ) {
+                    Text("Usuń", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Anuluj")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Szczegóły książki") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Wróć"
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
                     }
                 },
                 actions = {
-                    if (book != null) {
-                        IconButton(onClick = { onEdit(book.id) }) {
+                    book?.let { nonNullBook ->
+                        IconButton(onClick = { onEdit(nonNullBook.id) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edytuj")
+                        }
+                        IconButton(
+                            onClick = { showDeleteConfirmation = true }
+                        ) {
                             Icon(
-                                Icons.Default.Edit,
-                                contentDescription = "Edytuj"
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Usuń",
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }

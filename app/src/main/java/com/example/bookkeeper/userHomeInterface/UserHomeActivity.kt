@@ -105,7 +105,6 @@ class UserHomeActivity : ComponentActivity() {
                                 bookId = bookId,
                                 onBack = { navController.popBackStack() },
                                 viewModel = userBooksViewModel
-
                             )
                         }
                     }

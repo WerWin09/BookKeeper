@@ -6,6 +6,7 @@ import com.example.bookkeeper.utils.hasInternet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 class BookRepository (
@@ -65,6 +66,74 @@ class BookRepository (
         return db.bookDao().getBookById(bookId)
     }
 
+    suspend fun getStatuses(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        return db.bookDao().getStatuses(uid)
+    }
+
+    suspend fun getTags(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        val tags = db.bookDao().getTags(uid)
+        Log.d("BookRepository", "Pobrane tagi: $tags")
+        return tags
+    }
+
+    fun getBooksByStatus(status: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        return db.bookDao().getBooksByStatus(uid, status)
+    }
+
+    fun getBooksByTag(tag: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        Log.d("BookRepository", "Wyszukuję książki z tagiem: $tag")
+        return db.bookDao().getBooksByTag(uid, tag.trim())
+    }
+
+    suspend fun updateBook(book: BookEntity) {
+        val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
+        val updatedBook = book.copy(userId = uid)
+
+        if (hasInternet(context)) {
+            try {
+                // Logika aktualizacji w Firestore
+                firestore.collection("books")
+                    .whereEqualTo("id", book.id)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        for (document in documents) {
+                            document.reference.set(updatedBook)
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("BookRepository", "Error updating book in Firestore", e)
+            }
+        }
+        db.bookDao().insertBook(updatedBook) // Używamy insert z REPLACE strategy
+    }
+
+    suspend fun deleteBook(book: BookEntity) {
+        val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
+
+        // Usuń z Firestore jeśli jest połączenie
+        if (hasInternet(context)) {
+            try {
+                firestore.collection("books")
+                    .whereEqualTo("id", book.id)
+                    .whereEqualTo("userId", uid)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        for (document in documents) {
+                            document.reference.delete()
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("BookRepository", "Error deleting book from Firestore", e)
+            }
+        }
+
+        // Usuń z lokalnej bazy danych
+        db.bookDao().deleteBook(book)
+    }
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
     suspend fun syncUnsyncedBooks() {

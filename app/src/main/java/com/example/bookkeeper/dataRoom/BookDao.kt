@@ -26,8 +26,37 @@ interface BookDao {
     @Query("DELETE FROM books WHERE userId = :userId")
     suspend fun deleteBooksByUser(userId: String)
 
+    @Query("SELECT DISTINCT status FROM books WHERE userId = :userId")
+    suspend fun getStatuses(userId: String): List<String>
+
+    @Query("""
+        SELECT DISTINCT REPLACE(REPLACE(value, '\"', ''), ']', '') as tag
+        FROM books, json_each(REPLACE(REPLACE(tags, '[', ''), ']', ''))
+        WHERE userId = :userId 
+        AND value != 'null' 
+        AND value != ''
+        AND LENGTH(TRIM(value)) > 0
+    """)
+    suspend fun getTags(userId: String): List<String>
+
+    @Query("SELECT * FROM books WHERE userId = :userId AND status LIKE :status")
+    fun getBooksByStatus(userId: String, status: String): Flow<List<BookEntity>>
+
+    @Query("""
+        SELECT * FROM books 
+        WHERE userId = :userId 
+        AND EXISTS (
+            SELECT 1 FROM json_each(REPLACE(REPLACE(tags, '[', ''), ']', '')) 
+            WHERE REPLACE(REPLACE(value, '\"', ''), ' ', '') = :tag
+        )
+    """)
+    fun getBooksByTag(userId: String, tag: String): Flow<List<BookEntity>>
+
     @Insert
     suspend fun insertBook(book: BookEntity)
+
+    @Delete
+    suspend fun deleteBook(book: BookEntity)
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
     @Query("SELECT * FROM books WHERE userId = :uid AND isSynced = 0")

@@ -11,22 +11,27 @@ import kotlinx.coroutines.launch
 
 class UserBooksViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: BookRepository
+
     private val _books = MutableStateFlow<List<BookEntity>>(emptyList())
     val books: StateFlow<List<BookEntity>> = _books
+
     private val _categories = MutableStateFlow<List<String>>(emptyList())
     val categories: StateFlow<List<String>> = _categories
+
+    private val _statuses = MutableStateFlow<List<String>>(emptyList())
+    val statuses: StateFlow<List<String>> = _statuses
+
+    private val _tags = MutableStateFlow<List<String>>(emptyList())
+    val tags: StateFlow<List<String>> = _tags
 
     init {
         val database = BookDatabase.getDatabase(application)
         repository = BookRepository(application, database)
 
-        viewModelScope.launch {
-            repository.getBooksFlow().collect {
-                _books.value = it
-            }
-        }
-
+        loadInitialBooks()
         loadCategories()
+        loadStatuses()
+        loadTags()
 
         viewModelScope.launch {
             repository.syncBooksFromFirebase()
@@ -34,12 +39,45 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-
-    private fun loadBooks() {
+    private fun loadInitialBooks() {
         viewModelScope.launch {
-            repository.getBooksFlow().collect { books ->
+            repository.getBooksFlow().collect {
+                _books.value = it
+            }
+        }
+    }
+
+    private fun loadStatuses() {
+        viewModelScope.launch {
+            _statuses.value = repository.getStatuses()
+        }
+    }
+
+    private fun loadTags() {
+        viewModelScope.launch {
+            _tags.value = repository.getTags()
+        }
+    }
+
+    fun filterByStatus(status: String) {
+        viewModelScope.launch {
+            repository.getBooksByStatus(status).collect { books ->
                 _books.value = books
             }
+        }
+    }
+
+    fun filterByTag(tag: String) {
+        viewModelScope.launch {
+            repository.getBooksByTag(tag).collect { books ->
+                _books.value = books
+            }
+        }
+    }
+
+    fun updateBook(book: BookEntity) {
+        viewModelScope.launch {
+            repository.updateBook(book)
         }
     }
 
@@ -64,7 +102,11 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun resetFilters() {
-        loadBooks()
+        viewModelScope.launch {
+            repository.getBooksFlow().collect {
+                _books.value = it
+            }
+        }
     }
 
     private fun loadCategories() {
@@ -76,6 +118,12 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     fun addBook(book: BookEntity) {
         viewModelScope.launch {
             repository.addBook(book)
+        }
+    }
+
+    fun deleteBook(book: BookEntity) {
+        viewModelScope.launch {
+            repository.deleteBook(book)
         }
     }
 }
