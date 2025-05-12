@@ -138,7 +138,9 @@ fun EditImportedBookScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         OutlinedButton(
-                            onClick = { navController.popBackStack() },
+                            onClick = { navController.navigate("userBooks") {
+                                popUpTo("userBooks") { inclusive = true }
+                            } },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Text("Anuluj")
@@ -167,19 +169,18 @@ fun EditImportedBookScreen(
          LaunchedEffect(Unit) {
              snackbarHostState.showSnackbar("Dodano książkę")
 
-             navController.currentBackStackEntry
+             // Ustaw flagę, by inne ekrany wiedziały że dodano książkę
+             navController.previousBackStackEntry
                  ?.savedStateHandle
                  ?.set("bookAdded", true)
 
-             navController.navigate("searchBooks") {
-                 popUpTo("searchBooks") { inclusive = true }
+             // Nawigacja do UserBooksScreen (startDestination)
+             navController.navigate("userBooks") {
+                 popUpTo("userBooks") { inclusive = true }
              }
-
-             // OPOŹNIENIE lub późniejsze czyszczenie
-             delay(300)
-             searchViewModel.clearSelectedBook()
          }
      }
+
 
 
 
