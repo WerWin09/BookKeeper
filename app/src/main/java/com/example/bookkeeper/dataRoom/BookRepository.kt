@@ -114,26 +114,25 @@ class BookRepository (
     suspend fun deleteBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
-        // Usuń z Firestore jeśli jest połączenie
         if (hasInternet(context)) {
             try {
-                firestore.collection("books")
+                val snapshot = firestore.collection("books")
                     .whereEqualTo("id", book.id)
                     .whereEqualTo("userId", uid)
                     .get()
-                    .addOnSuccessListener { documents ->
-                        for (document in documents) {
-                            document.reference.delete()
-                        }
-                    }
+                    .await() // <- czekamy na dane
+
+                for (doc in snapshot.documents) {
+                    doc.reference.delete().await() // <- też czekamy na usunięcie
+                }
             } catch (e: Exception) {
-                Log.e("BookRepository", "Error deleting book from Firestore", e)
+                Log.e("BookRepository", "Error deleting from Firestore", e)
             }
         }
 
-        // Usuń z lokalnej bazy danych
-        db.bookDao().deleteBook(book)
+        db.bookDao().deleteBook(book) // usuwamy lokalnie
     }
+
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
     suspend fun syncUnsyncedBooks() {

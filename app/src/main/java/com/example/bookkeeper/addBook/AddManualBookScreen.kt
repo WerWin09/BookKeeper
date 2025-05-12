@@ -19,6 +19,8 @@ import androidx.navigation.NavController
 import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import com.example.bookkeeper.utils.Constants.statusOptions
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +38,6 @@ fun ManualAddBookScreen(
     var description by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf<Int?>(null) }
     var statusExpanded by remember { mutableStateOf(false) }
-    val statusOptions = listOf("Przeczytana", "W trakcie", "Planowana")
     var tags by remember { mutableStateOf("") }
 
     Scaffold(

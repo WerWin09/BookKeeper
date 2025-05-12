@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.dataRoom.BookEntity
+import com.example.bookkeeper.utils.Constants.statusOptions
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +30,15 @@ fun EditBookScreen(
     var description by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf<Int?>(null) }
     var tags by remember { mutableStateOf<List<String>>(emptyList()) }
+    var statusExpanded by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect(bookId) {
+        bookId?.let {
+            val book = viewModel.getBookById(it)
+            bookState = book
+        }
+    }
 
     LaunchedEffect(bookState) {
         bookState?.let { book ->
@@ -91,12 +102,37 @@ fun EditBookScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = status,
-                    onValueChange = { status = it },
-                    label = { Text("Status") },
+                ExposedDropdownMenuBox(
+                    expanded = statusExpanded,
+                    onExpandedChange = { statusExpanded = !statusExpanded },
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) {
+                    OutlinedTextField(
+                        value = status,
+                        onValueChange = {},
+                        label = { Text("Status *") },
+                        readOnly = true,
+                        modifier = Modifier.menuAnchor(),
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                        }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = statusExpanded,
+                        onDismissRequest = { statusExpanded = false }
+                    ) {
+                        statusOptions.forEach {
+                            DropdownMenuItem(
+                                text = { Text(it) },
+                                onClick = {
+                                    status = it
+                                    statusExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
 

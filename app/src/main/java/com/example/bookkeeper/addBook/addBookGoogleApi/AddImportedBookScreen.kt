@@ -19,6 +19,8 @@ import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarHost
 import kotlinx.coroutines.delay
+import com.example.bookkeeper.utils.Constants.statusOptions
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +40,6 @@ fun EditImportedBookScreen(
     var status by remember { mutableStateOf(selectedBook.status) }
     var rating by remember { mutableStateOf(selectedBook.rating) }
     var statusExpanded by remember { mutableStateOf(false) }
-    val statusOptions = listOf("Przeczytana", "W trakcie", "Planowana")
 
     val snackbarHostState = remember { SnackbarHostState() }
     var showSnackbar by remember { mutableStateOf(false) }
