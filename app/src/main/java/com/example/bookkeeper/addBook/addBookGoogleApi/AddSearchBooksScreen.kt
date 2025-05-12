@@ -40,6 +40,7 @@ fun SearchBooksScreen(
         ?.get<Boolean>("bookAdded") == true
 
 
+
     LaunchedEffect(bookAdded) {
         if (bookAdded) {
             viewModel.clearFields()
@@ -48,6 +49,7 @@ fun SearchBooksScreen(
                 ?.remove<Boolean>("bookAdded")
         }
     }
+
 
 
     LaunchedEffect(navigateToEdit) {

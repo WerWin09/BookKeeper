@@ -168,9 +168,8 @@ fun EditImportedBookScreen(
                     ?.savedStateHandle
                     ?.set("bookAdded", true)
 
-                navController.navigate("searchBooks") {
-                    popUpTo("searchBooks") { inclusive = true }
-                }
+                navController.popBackStack()
+
 
             }
         }
