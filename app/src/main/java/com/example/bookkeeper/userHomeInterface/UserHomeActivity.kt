@@ -61,9 +61,11 @@ class UserHomeActivity : ComponentActivity() {
                             EditImportedBookScreen(
                                 navController = navController,
                                 viewModel = userBooksViewModel,
+                                searchViewModel = searchBooksViewModel,
                                 selectedBook = selectedBook
                             )
                         }
+
 
 
 

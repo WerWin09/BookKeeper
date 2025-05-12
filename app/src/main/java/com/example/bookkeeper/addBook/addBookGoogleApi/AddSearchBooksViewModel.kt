@@ -78,9 +78,14 @@ class SearchBooksViewModel : ViewModel() {
     fun clearFields() {
         titleQuery.value = ""
         authorQuery.value = ""
-        categoryQuery.value = ""
         publisherQuery.value = ""
+        categoryQuery.value = ""
+        _searchResults.value = emptyList()
     }
 
+
+    fun clearSelectedBook() {
+        _selectedBook.value = null
+    }
 
 }

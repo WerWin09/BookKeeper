@@ -18,6 +18,7 @@ import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarHost
+import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,8 +26,10 @@ import androidx.compose.material3.SnackbarHost
 fun EditImportedBookScreen(
     navController: NavController,
     viewModel: UserBooksViewModel = viewModel(),
+    searchViewModel: SearchBooksViewModel = viewModel(),
     selectedBook: BookEntity?
-) {
+)
+ {
     if (selectedBook == null) {
         Text("Nie wybrano książki.")
         return
@@ -160,18 +163,24 @@ fun EditImportedBookScreen(
                 }
             }
 
-        if (showSnackbar) {
-            LaunchedEffect(Unit) {
-                snackbarHostState.showSnackbar("Dodano książkę")
+     if (showSnackbar) {
+         LaunchedEffect(Unit) {
+             snackbarHostState.showSnackbar("Dodano książkę")
 
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set("bookAdded", true)
+             navController.currentBackStackEntry
+                 ?.savedStateHandle
+                 ?.set("bookAdded", true)
 
-                navController.popBackStack()
+             navController.navigate("searchBooks") {
+                 popUpTo("searchBooks") { inclusive = true }
+             }
+
+             // OPOŹNIENIE lub późniejsze czyszczenie
+             delay(300)
+             searchViewModel.clearSelectedBook()
+         }
+     }
 
 
-            }
-        }
 
 }

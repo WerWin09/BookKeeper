@@ -171,8 +171,8 @@ fun ScanIsbnScreen(
 }
 
 private fun navigateBack(navController: NavController) {
-    navController.navigate("manualAddBook") {
-        popUpTo("manualAddBook") { inclusive = true }
+    navController.navigate("searchBooks") {
+        popUpTo("searchBooks") { inclusive = true }
     }
 }
 
