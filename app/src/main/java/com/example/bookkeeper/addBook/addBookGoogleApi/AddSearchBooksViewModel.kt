@@ -30,6 +30,11 @@ class SearchBooksViewModel : ViewModel() {
     private val _navigateToEdit = MutableStateFlow(false)
     val navigateToEdit: StateFlow<Boolean> = _navigateToEdit
 
+    val titleQuery = MutableStateFlow("")
+    val authorQuery = MutableStateFlow("")
+    val categoryQuery = MutableStateFlow("")
+    val publisherQuery = MutableStateFlow("")
+
     private val api: GoogleBooksApi = Retrofit.Builder()
         .baseUrl("https://www.googleapis.com/books/v1/")
         .addConverterFactory(GsonConverterFactory.create())
@@ -69,4 +74,13 @@ class SearchBooksViewModel : ViewModel() {
     fun onNavigatedToEditScreen() {
         _navigateToEdit.value = false
     }
+
+    fun clearFields() {
+        titleQuery.value = ""
+        authorQuery.value = ""
+        categoryQuery.value = ""
+        publisherQuery.value = ""
+    }
+
+
 }

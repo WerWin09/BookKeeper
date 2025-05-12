@@ -26,11 +26,29 @@ fun SearchBooksScreen(
     val results by viewModel.searchResults.collectAsStateWithLifecycle()
     val navigateToEdit by viewModel.navigateToEdit.collectAsStateWithLifecycle()
 
-    var title by remember { mutableStateOf("") }
-    var author by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
-    var publisher by remember { mutableStateOf("") }
+    val title by viewModel.titleQuery.collectAsStateWithLifecycle()
+    val author by viewModel.authorQuery.collectAsStateWithLifecycle()
+    val category by viewModel.categoryQuery.collectAsStateWithLifecycle()
+    val publisher by viewModel.publisherQuery.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+    val selectedBook by viewModel.selectedBook.collectAsState()
+
+
+    val bookAdded = navController
+        .previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<Boolean>("bookAdded") == true
+
+
+    LaunchedEffect(bookAdded) {
+        if (bookAdded) {
+            viewModel.clearFields()
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.remove<Boolean>("bookAdded")
+        }
+    }
+
 
     LaunchedEffect(navigateToEdit) {
         if (navigateToEdit) {
@@ -71,28 +89,28 @@ fun SearchBooksScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { viewModel.titleQuery.value = it },
                 label = { Text("Tytuł") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = author,
-                onValueChange = { author = it },
+                onValueChange = { viewModel.titleQuery.value = it },
                 label = { Text("Autor") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = category,
-                onValueChange = { category = it },
+                onValueChange = { viewModel.titleQuery.value = it },
                 label = { Text("Tematyka") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = publisher,
-                onValueChange = { publisher = it },
+                onValueChange = { viewModel.titleQuery.value = it },
                 label = { Text("Wydawnictwo") },
                 modifier = Modifier.fillMaxWidth()
             )

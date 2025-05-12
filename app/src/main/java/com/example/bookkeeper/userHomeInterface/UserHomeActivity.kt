@@ -55,14 +55,17 @@ class UserHomeActivity : ComponentActivity() {
                                 viewModel = searchBooksViewModel
                             )
                         }
+
                         composable("editImportedBook") {
                             val selectedBook by searchBooksViewModel.selectedBook.collectAsState()
                             EditImportedBookScreen(
-                                onBack = { navController.popBackStack() },
+                                navController = navController,
                                 viewModel = userBooksViewModel,
                                 selectedBook = selectedBook
                             )
                         }
+
+
                         composable(
                             route = "scanIsbn?source={source}&input={input}",
                             arguments = listOf(
