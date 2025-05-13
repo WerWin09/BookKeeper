@@ -28,6 +28,10 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.bookkeeper.utils.mapGoogleBookToBookEntity
+import com.example.bookkeeper.addBook.addBookGoogleApi.SearchBooksViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +40,8 @@ fun ScanIsbnScreen(
     source: String,
     input: String,
     onIsbnFound: (String) -> Unit,
-    onBackToCaller: () -> Unit
+    onBackToCaller: () -> Unit,
+    searchViewModel: SearchBooksViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -47,22 +52,29 @@ fun ScanIsbnScreen(
     var showNoResultDialog by remember { mutableStateOf(false) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri == null) {
-            navigateBack(navController)
+            navController.popBackStack()
         } else {
-            imageUri = uri
-            val bmp = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-            bmp?.let {
-                bitmap = it
+            // 1) wczytaj bitmapę z URI
+            val bmp = BitmapFactory.decodeStream(
+                context.contentResolver.openInputStream(uri)
+            )
+            if (bmp != null) {
+                // pokaż ją i spinner
+                bitmap = bmp
+                isProcessing = true
+
+                // 2) OCR + nawigacja
                 runOcrAndExtractIsbn(
-                    it, scope,
-                    onIsbnFound = { foundIsbn ->
-                        onIsbnFound(foundIsbn)
-                        navController.navigate("editImportedBook") {
-                            popUpTo("searchBooks") { inclusive = false }
-                        }
+                    bmp,
+                    scope,
+                    onIsbnFound = { isbn ->
+                        // trigger live-search w VM
+                        searchViewModel.searchBooks(isbn)
+                        // przejdź do ekranu edycji
+                        navController.navigate("editImportedBook")
                     },
                     onNotFound = {
                         showNoResultDialog = true
@@ -74,27 +86,33 @@ fun ScanIsbnScreen(
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        ActivityResultContracts.TakePicture()
     ) { success ->
         if (!success) {
-            navigateBack(navController)
-        } else if (imageUri != null) {
-            val bmp = BitmapFactory.decodeStream(context.contentResolver.openInputStream(imageUri!!))
-            bmp?.let {
-                bitmap = it
-                runOcrAndExtractIsbn(
-                    it, scope,
-                    onIsbnFound = { foundIsbn ->
-                        onIsbnFound(foundIsbn)
-                        navController.navigate("editImportedBook") {
-                            popUpTo("searchBooks") { inclusive = false }
-                        }
-                    },
-                    onNotFound = {
-                        showNoResultDialog = true
-                        isProcessing = false
-                    }
+            navController.popBackStack()
+        } else {
+            imageUri?.let { uri ->
+                // analogicznie: dekoduj bmp
+                val bmp = BitmapFactory.decodeStream(
+                    context.contentResolver.openInputStream(uri)
                 )
+                if (bmp != null) {
+                    bitmap = bmp
+                    isProcessing = true
+
+                    runOcrAndExtractIsbn(
+                        bmp,
+                        scope,
+                        onIsbnFound = { isbn ->
+                            searchViewModel.searchBooks(isbn)
+                            navController.navigate("editImportedBook")
+                        },
+                        onNotFound = {
+                            showNoResultDialog = true
+                            isProcessing = false
+                        }
+                    )
+                }
             }
         }
     }

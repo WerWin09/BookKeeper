@@ -49,7 +49,7 @@ fun EditImportedBookScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             Modifier
@@ -59,36 +59,38 @@ fun EditImportedBookScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // --- Pól tylko do odczytu ---
             OutlinedTextField(
                 value = selectedBook.title,
                 onValueChange = {},
                 label = { Text("Tytuł") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = selectedBook.author,
                 onValueChange = {},
                 label = { Text("Autor") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = selectedBook.category ?: "",
                 onValueChange = {},
                 label = { Text("Kategoria") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = selectedBook.description ?: "",
                 onValueChange = {},
                 label = { Text("Opis") },
-                modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
                 maxLines = 3
             )
 
+            // --- Dropdown statusu ---
             ExposedDropdownMenuBox(
                 expanded = statusExpanded,
                 onExpandedChange = { statusExpanded = !statusExpanded },
@@ -99,18 +101,24 @@ fun EditImportedBookScreen(
                     onValueChange = {},
                     label = { Text("Status *") },
                     readOnly = true,
-                    modifier = Modifier.menuAnchor(),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) }
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = statusExpanded
+                        )
+                    }
                 )
                 ExposedDropdownMenu(
                     expanded = statusExpanded,
                     onDismissRequest = { statusExpanded = false }
                 ) {
-                    statusOptions.forEach {
+                    statusOptions.forEach { option ->
                         DropdownMenuItem(
-                            text = { Text(it) },
+                            text = { Text(option) },
                             onClick = {
-                                status = it
+                                status = option
                                 statusExpanded = false
                             }
                         )
@@ -118,6 +126,7 @@ fun EditImportedBookScreen(
                 }
             }
 
+            // --- Pola rating ---
             OutlinedTextField(
                 value = rating?.toString() ?: "",
                 onValueChange = {
@@ -128,6 +137,7 @@ fun EditImportedBookScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // --- Przyciski Anuluj / Dodaj ---
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -140,7 +150,10 @@ fun EditImportedBookScreen(
                 }
                 Button(
                     onClick = {
-                        val book = selectedBook.copy(status = status.trim(), rating = rating)
+                        val book = selectedBook.copy(
+                            status = status.trim(),
+                            rating = rating
+                        )
                         viewModel.addBook(book)
                         searchViewModel.clearFields()
                         showSnackbar = true
@@ -151,26 +164,26 @@ fun EditImportedBookScreen(
                 }
             }
 
-            Text("* Edytowalne pola", style = MaterialTheme.typography.labelSmall)
+            Text(
+                "* Edytowalne pola",
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 
-    // efekt pokazujący snackbar i zawsze wracający do SearchBooksScreen
+    // --- Efekt: snackbar + nawigacja do SearchBooksScreen ---
     LaunchedEffect(showSnackbar) {
         if (showSnackbar) {
-            // lokalny snackbar (opcjonalnie)
-            snackbarHostState.showSnackbar("Dodano książkę")
-
-            // ustaw flagę dla SearchBooksScreen niezależnie od poprzednika
+            // 1) nawigujemy od razu do SearchBooksScreen, czyszcząc wszystko powyżej
+            navController.navigate("searchBooks") {
+                popUpTo("searchBooks") { inclusive = true }
+            }
+            // 2) dopiero teraz ustawiamy flagę na tym entry, żeby SearchBooksScreen odczytał ją natychmiast
             navController
                 .getBackStackEntry("searchBooks")
                 .savedStateHandle
                 .set("showSnackbarMessage", "Dodano książkę")
-
-            // nawigacja i czyszczenie backstacku
-            navController.navigate("searchBooks") {
-                popUpTo("searchBooks") { inclusive = true }
-            }
         }
     }
+
 }
