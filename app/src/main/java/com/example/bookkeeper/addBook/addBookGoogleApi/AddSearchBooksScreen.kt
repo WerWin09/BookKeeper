@@ -98,43 +98,34 @@ fun SearchBooksScreen(
 
             OutlinedTextField(
                 value = author,
-                onValueChange = { viewModel.titleQuery.value = it },
+                onValueChange = { viewModel.authorQuery.value = it },
                 label = { Text("Autor") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = category,
-                onValueChange = { viewModel.titleQuery.value = it },
+                onValueChange = { viewModel.categoryQuery.value = it },
                 label = { Text("Tematyka") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = publisher,
-                onValueChange = { viewModel.titleQuery.value = it },
+                onValueChange = { viewModel.publisherQuery.value = it },
                 label = { Text("Wydawnictwo") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Button(
-                onClick = {
-                    val queryParts = mutableListOf<String>()
-                    if (title.isNotBlank()) queryParts.add("intitle:$title")
-                    if (author.isNotBlank()) queryParts.add("inauthor:$author")
-                    if (category.isNotBlank()) queryParts.add("subject:$category")
-                    if (publisher.isNotBlank()) queryParts.add("inpublisher:$publisher")
+            LaunchedEffect(title, author, category, publisher) {
+                val parts = mutableListOf<String>()
+                if (title.isNotBlank())    parts += "intitle:$title"
+                if (author.isNotBlank())   parts += "inauthor:$author"
+                if (category.isNotBlank()) parts += "subject:$category"
+                if (publisher.isNotBlank())parts += "inpublisher:$publisher"
 
-                    val finalQuery = queryParts.joinToString(" ")
-                    if (finalQuery.isNotBlank()) {
-                        viewModel.searchBooks(finalQuery)
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(top = 8.dp)
-            ) {
-                Text("Szukaj")
+                val q = parts.joinToString(" ")
+                viewModel.searchBooks(q)
             }
 
             LazyColumn {

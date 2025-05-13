@@ -49,7 +49,8 @@ fun EditImportedBookScreen(
             TopAppBar(
                     title = { Text("Dodaj nową książkę") },
                     navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Anuluj")}
                     }
                     )
@@ -139,9 +140,9 @@ fun EditImportedBookScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         OutlinedButton(
-                            onClick = { navController.navigate("userBooks") {
-                                popUpTo("userBooks") { inclusive = true }
-                            } },
+                            onClick = {
+                                navController.popBackStack()
+                            },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Text("Anuluj")
@@ -154,6 +155,7 @@ fun EditImportedBookScreen(
                                     rating = rating
                                 )
                                 viewModel.addBook(book)
+                                searchViewModel.clearFields()
                                 showSnackbar = true
                             },
                             enabled = status.isNotBlank()
@@ -169,20 +171,12 @@ fun EditImportedBookScreen(
      if (showSnackbar) {
          LaunchedEffect(Unit) {
              snackbarHostState.showSnackbar("Dodano książkę")
-
-             // Ustaw flagę, by inne ekrany wiedziały że dodano książkę
-             navController.previousBackStackEntry
-                 ?.savedStateHandle
-                 ?.set("bookAdded", true)
-
-             // Nawigacja do UserBooksScreen (startDestination)
+             // nawigacja do ekranu głównego
              navController.navigate("userBooks") {
-                 popUpTo("userBooks") { inclusive = true }
+                 // oczyść cały backstack, żeby nie wracać do edit/search popUpTo(0)
              }
          }
-     }
 
-
-
+ }
 
 }
