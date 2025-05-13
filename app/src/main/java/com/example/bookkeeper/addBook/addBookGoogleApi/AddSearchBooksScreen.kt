@@ -32,21 +32,23 @@ fun SearchBooksScreen(
     val publisher by viewModel.publisherQuery.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
     val selectedBook by viewModel.selectedBook.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
 
-    val bookAdded = navController
-        .previousBackStackEntry
+
+    val showMessage = navController
+        .currentBackStackEntry
         ?.savedStateHandle
-        ?.get<Boolean>("bookAdded") == true
+        ?.get<String>("showSnackbarMessage")
 
-
-
-    LaunchedEffect(bookAdded) {
-        if (bookAdded) {
-            viewModel.clearFields()
-            navController.previousBackStackEntry
+    LaunchedEffect(showMessage) {
+        showMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            // usuń flagę, aby nie pokazywało drugi raz
+            navController
+                .currentBackStackEntry
                 ?.savedStateHandle
-                ?.remove<Boolean>("bookAdded")
+                ?.remove<String>("showSnackbarMessage")
         }
     }
 
@@ -74,6 +76,7 @@ fun SearchBooksScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 FloatingActionButton(onClick = { navController.navigate("manualAddBook") }) {
