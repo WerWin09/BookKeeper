@@ -40,27 +40,30 @@ class BookRepository (
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         val bookWithUserId = book.copy(userId = uid)
 
-        val syncedBook = if (hasInternet(context)) {
+        // 1) Dodajemy raz do Firestore (jeśli jest internet) i pobieramy documentId
+        val finalBook = if (hasInternet(context)) {
             try {
-                firestore.collection("books").add(bookWithUserId).await()
-                bookWithUserId.copy(isSynced = true)
+                val docRef = firestore.collection("books")
+                    .add(bookWithUserId)
+                    .await()
+                // zwracamy encję z remoteDocId i isSynced = true
+                bookWithUserId.copy(
+                    remoteDocId = docRef.id,
+                    isSynced    = true
+                )
             } catch (e: Exception) {
+                // jeśli błąd – zapisujemy lokalnie bez remoteDocId
                 bookWithUserId
             }
         } else {
             bookWithUserId
         }
-        db.bookDao().insertBook(syncedBook)
 
-
-        if (hasInternet(context)) {
-            try {
-                firestore.collection("books").add(bookWithUserId).await()
-            } catch (e: Exception) {
-                // Jeśli synchronizacja się nie uda, książka i tak jest w lokalnej bazie
-            }
-        }
+        // 2) Wstawiamy do Room tylko raz, z ustawionym remoteDocId (albo bez)
+        db.bookDao().insertBook(finalBook)
     }
+
+
 
     suspend fun getBookById(bookId: Int): BookEntity? {
         return db.bookDao().getBookById(bookId)
@@ -91,47 +94,45 @@ class BookRepository (
 
     suspend fun updateBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
+        // Upewniamy się, że przekazujemy userId w encji
         val updatedBook = book.copy(userId = uid)
 
-        if (hasInternet(context)) {
+        // 1) Jeśli mamy internet i znamy remoteDocId, zaktualizuj dokument w Firestore
+        if (hasInternet(context) && !book.remoteDocId.isNullOrBlank()) {
             try {
-                // Logika aktualizacji w Firestore
                 firestore.collection("books")
-                    .whereEqualTo("id", book.id)
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        for (document in documents) {
-                            document.reference.set(updatedBook)
-                        }
-                    }
+                    .document(book.remoteDocId!!)
+                    .set(updatedBook)
+                    .await()  // czekamy na zakończenie
             } catch (e: Exception) {
                 Log.e("BookRepository", "Error updating book in Firestore", e)
             }
         }
-        db.bookDao().insertBook(updatedBook) // Używamy insert z REPLACE strategy
+
+        // 2) Zawsze wstawiamy zaktualizowaną encję do Room (RESOLVE = REPLACE)
+        db.bookDao().insertBook(updatedBook)
     }
+
 
     suspend fun deleteBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
-        if (hasInternet(context)) {
+        // 1) jeśli mamy Internet i zapisane remoteDocId, usuwamy bezpośrednio
+        if (hasInternet(context) && !book.remoteDocId.isNullOrBlank()) {
             try {
-                val snapshot = firestore.collection("books")
-                    .whereEqualTo("id", book.id)
-                    .whereEqualTo("userId", uid)
-                    .get()
-                    .await() // <- czekamy na dane
-
-                for (doc in snapshot.documents) {
-                    doc.reference.delete().await() // <- też czekamy na usunięcie
-                }
+                firestore.collection("books")
+                    .document(book.remoteDocId!!)
+                    .delete()
+                    .await()
             } catch (e: Exception) {
                 Log.e("BookRepository", "Error deleting from Firestore", e)
             }
         }
 
-        db.bookDao().deleteBook(book) // usuwamy lokalnie
+        // 2) zawsze usuwamy lokalnie
+        db.bookDao().deleteBook(book)
     }
+
 
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
@@ -140,15 +141,22 @@ class BookRepository (
 
         val uid = auth.currentUser?.uid ?: return
         val unsyncedBooks = db.bookDao().getUnsyncedBooks(uid)
+
         for (book in unsyncedBooks) {
             try {
-                firestore.collection("books").add(book).await()
-                db.bookDao().markAsSynced(book.id)
-            } catch (e: Exception) {
+                // 1) dodajemy do Firestore i pobieramy documentId
+                val docRef = firestore.collection("books")
+                    .add(book.copy(userId = uid))
+                    .await()
 
+                // 2) oznaczamy w Room jako zsynchronizowane z tym remoteId
+                db.bookDao().markAsSynced(book.id, docRef.id)
+            } catch (e: Exception) {
+                Log.e("BookRepository", "Error syncing book id=${book.id}", e)
             }
         }
     }
+
 
 
     suspend fun syncBooksFromFirebase() {
@@ -162,34 +170,38 @@ class BookRepository (
                 .get()
                 .await()
 
+            // Mapujemy każde doc na encję z remoteDocId
             val books = snapshot.mapNotNull { doc ->
                 try {
-                    val book = BookEntity(
-                        title = doc.getString("title") ?: "",
-                        author = doc.getString("author") ?: "",
-                        status = doc.getString("status") ?: "",
-                        category = doc.getString("category"),
-                        description = doc.getString("description"),
-                        rating = (doc.get("rating") as? Long)?.toInt(),
-                        userId = doc.getString("userId") ?: "",
-                        tags = (doc.get("tags") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
-                        isSynced = true
+                    BookEntity(
+                        id           = 0,                 // autogenerowane w Room
+                        remoteDocId  = doc.id,            // klucz Firestore
+                        title        = doc.getString("title") ?: "",
+                        author       = doc.getString("author") ?: "",
+                        status       = doc.getString("status") ?: "",
+                        category     = doc.getString("category"),
+                        description  = doc.getString("description"),
+                        rating       = (doc.get("rating") as? Long)?.toInt(),
+                        userId       = uid,
+                        tags         = (doc.get("tags") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                        isSynced     = true
                     )
-                    Log.d("FirestoreSync", "Załadowano książkę: ${doc.data}")
-                    book
                 } catch (e: Exception) {
-                    Log.e("FirestoreSync", "Błąd przetwarzania dokumentu: ${doc.id}", e)
+                    Log.e("FirestoreSync", "Error processing doc=${doc.id}", e)
                     null
                 }
             }
 
-            db.bookDao().deleteBooksByUser(uid) // wyczyść stare dane
+            // 1) Wyczyść stare dane lokalne
+            db.bookDao().deleteBooksByUser(uid)
+            // 2) Wstaw nowe, zsynchronizowane
             db.bookDao().insertBooks(books)
-            Log.d("FirestoreSync", "Zsynchronizowano ${books.size} książek z Firestore")
+            Log.d("FirestoreSync", "Synchronized ${books.size} books from Firebase")
         } catch (e: Exception) {
-            Log.e("FirestoreSync", "Błąd przy pobieraniu danych z Firestore", e)
+            Log.e("FirestoreSync", "Error fetching from Firebase", e)
         }
     }
+
 
 
 }
