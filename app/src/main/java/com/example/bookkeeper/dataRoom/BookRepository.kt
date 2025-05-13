@@ -109,7 +109,7 @@ class BookRepository (
             }
         }
 
-        // 2) Zawsze wstawiamy zaktualizowaną encję do Room (RESOLVE = REPLACE)
+        // 2) Zawsze wstawiamy zaktualizowaną encję do Room
         db.bookDao().insertBook(updatedBook)
     }
 
