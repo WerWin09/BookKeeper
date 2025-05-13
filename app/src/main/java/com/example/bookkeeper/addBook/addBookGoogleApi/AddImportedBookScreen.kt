@@ -171,12 +171,9 @@ fun EditImportedBookScreen(
      if (showSnackbar) {
          LaunchedEffect(Unit) {
              snackbarHostState.showSnackbar("Dodano książkę")
-             // nawigacja do ekranu głównego
-             navController.navigate("userBooks") {
-                 // oczyść cały backstack, żeby nie wracać do edit/search popUpTo(0)
-             }
+             navController.popBackStack()
          }
 
- }
+     }
 
 }
