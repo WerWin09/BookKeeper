@@ -32,8 +32,25 @@ class UserHomeActivity : ComponentActivity() {
                             UserBooksScreen(
                                 viewModel = userBooksViewModel,
                                 onAddBook = { navController.navigate("manualAddBook") },
-                                onBookClick = { bookId ->
-                                    navController.navigate("bookDetails/$bookId")
+                                onBookClick = { id -> navController.navigate("bookDetails/$id") },
+                                onStatusClick = { status ->
+                                    navController.navigate("booksByStatus/$status")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "booksByStatus/{status}",
+                            arguments = listOf(navArgument("status") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val status = backStackEntry.arguments!!.getString("status")!!
+                            BooksByStatusScreen(
+                                status = status,
+                                viewModel = userBooksViewModel,
+                                onAddBook = { navController.navigate("manualAddBook") },
+                                onBookClick = { id -> navController.navigate("bookDetails/$id") },
+                                onBack = {
+                                    // po cofnięciu idziemy do głównego ekranu kategorii/statusów
+                                    navController.popBackStack()
                                 }
                             )
                         }
