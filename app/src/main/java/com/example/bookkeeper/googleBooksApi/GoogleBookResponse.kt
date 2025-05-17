@@ -14,5 +14,10 @@ data class VolumeInfo(
     val authors: List<String>?,
     val description: String?,
     val categories: List<String>?,
-    val averageRating: Float?
+    val averageRating: Float?,
+    val imageLinks: ImageLinks?
+)
+
+data class ImageLinks(
+    val thumbnail: String?
 )

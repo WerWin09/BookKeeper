@@ -15,5 +15,7 @@ data class BookEntity(
     val rating: Int?,
     val userId: String,
     val tags: List<String> = emptyList(),
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val coverUrl: String? = null,
+    val localCoverPath: String? = null
 )

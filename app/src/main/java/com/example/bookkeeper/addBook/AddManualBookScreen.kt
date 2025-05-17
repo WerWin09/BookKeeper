@@ -1,5 +1,6 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,6 +21,14 @@ import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.example.bookkeeper.utils.Constants.statusOptions
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.BitmapFactory
+import androidx.compose.ui.platform.LocalContext
+import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +48,22 @@ fun ManualAddBookScreen(
     var rating by remember { mutableStateOf<Int?>(null) }
     var statusExpanded by remember { mutableStateOf(false) }
     var tags by remember { mutableStateOf("") }
+    var localCoverPath by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val file = File(context.filesDir, "cover_${System.currentTimeMillis()}.jpg")
+            file.outputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            }
+            localCoverPath = file.absolutePath
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -152,6 +177,28 @@ fun ManualAddBookScreen(
                 singleLine = true
             )
 
+            Text(
+                text = "Okładka:",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            if (localCoverPath != null) {
+                Image(
+                    bitmap = BitmapFactory.decodeFile(localCoverPath).asImageBitmap(),
+                    contentDescription = "Okładka książki",
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clickable { galleryLauncher.launch("image/*") }
+                )
+            } else {
+                Button(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Text("Dodaj okładkę")
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -174,6 +221,7 @@ fun ManualAddBookScreen(
                             description = description.trim().takeIf { it.isNotEmpty() },
                             rating = rating,
                             userId = "",
+                            localCoverPath = localCoverPath,
                             tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                         )
                         viewModel.addBook(newBook)

@@ -1,15 +1,19 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -103,6 +107,28 @@ fun BookDetailsScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Okładka książki
+                val imageBitmap = remember(book?.localCoverPath) {
+                    book?.localCoverPath?.let { path ->
+                        try {
+                            BitmapFactory.decodeFile(path)?.asImageBitmap()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+                    }
+                }
+
+                imageBitmap?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = "Okładka książki",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 // Header
                 Text(
                     text = book.title,
@@ -146,7 +172,6 @@ fun BookDetailsScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // This is the experimental FlowRow
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)

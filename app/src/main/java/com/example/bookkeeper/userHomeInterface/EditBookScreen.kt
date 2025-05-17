@@ -1,5 +1,10 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,11 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.utils.Constants.statusOptions
-
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,12 +38,32 @@ fun EditBookScreen(
     var rating by remember { mutableStateOf<Int?>(null) }
     var tags by remember { mutableStateOf<List<String>>(emptyList()) }
     var statusExpanded by remember { mutableStateOf(false) }
+    var localCoverPath by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                val file = File(context.filesDir, "cover_${System.currentTimeMillis()}.jpg")
+                file.outputStream().use { out ->
+                    bitmap?.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                localCoverPath = file.absolutePath
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     LaunchedEffect(bookId) {
-        bookId?.let {
-            val book = viewModel.getBookById(it)
-            bookState = book
+        bookId?.let { id ->
+            viewModel.getBookById(id)?.let { book ->
+                bookState = book
+            }
         }
     }
 
@@ -49,6 +76,7 @@ fun EditBookScreen(
             description = book.description ?: ""
             rating = book.rating
             tags = book.tags
+            localCoverPath = book.localCoverPath
         }
     }
 
@@ -58,10 +86,7 @@ fun EditBookScreen(
                 title = { Text("Edytuj książkę") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Wróć"
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
                     }
                 }
             )
@@ -84,6 +109,44 @@ fun EditBookScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Sekcja okładki
+                Text(
+                    text = "Okładka:",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                localCoverPath?.let { path ->
+                    val imageBitmap = remember(path) {
+                        try {
+                            BitmapFactory.decodeFile(path)?.asImageBitmap()
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+
+                    imageBitmap?.let { bitmap ->
+                        Image(
+                            bitmap = bitmap,
+                            contentDescription = "Okładka książki",
+                            modifier = Modifier
+                                .size(150.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Text(localCoverPath?.let { "Zmień okładkę" } ?: "Dodaj okładkę")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Reszta formularza
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -133,7 +196,6 @@ fun EditBookScreen(
                     }
                 }
 
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
@@ -156,21 +218,22 @@ fun EditBookScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tutaj możesz dodać więcej pól do edycji
-
                 Button(
                     onClick = {
-                        val updatedBook = bookState!!.copy(
-                            title = title,
-                            author = author,
-                            status = status,
-                            category = category.ifEmpty { null },
-                            description = description.ifEmpty { null },
-                            rating = rating,
-                            tags = tags
-                        )
-                        viewModel.updateBook(updatedBook)
-                        onBack()
+                        bookState?.let { originalBook ->
+                            val updatedBook = originalBook.copy(
+                                title = title,
+                                author = author,
+                                status = status,
+                                category = category.ifEmpty { null },
+                                description = description.ifEmpty { null },
+                                rating = rating,
+                                tags = tags,
+                                localCoverPath = localCoverPath
+                            )
+                            viewModel.updateBook(updatedBook)
+                            onBack()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
