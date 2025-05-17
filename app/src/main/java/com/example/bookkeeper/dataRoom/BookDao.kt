@@ -58,6 +58,17 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE userId = :userId AND tags LIKE '%' || :tag || '%'")
     fun getBooksByTag(userId: String, tag: String): Flow<List<BookEntity>>
 
+    // ─── AUTHORS ─────────────────────────────────────────────────────────────────────
+
+    /** Zwraca unikalne nazwiska autorów dla danego użytkownika */
+    @Query("SELECT DISTINCT author FROM books WHERE userId = :userId AND author IS NOT NULL")
+    suspend fun getAuthor(userId: String): List<String>
+
+    /** Zwraca książki danego użytkownika, których autor pasuje do zapytania */
+    @Query("SELECT * FROM books WHERE userId = :userId AND author LIKE :author")
+    fun getBooksByAuthor(userId: String, author: String): Flow<List<BookEntity>>
+
+
     // ─── STATUS ────────────────────────────────────────────────────────────────────
 
     /** Filtrowanie po statusie */

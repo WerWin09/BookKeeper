@@ -94,6 +94,10 @@ dependencies {
     // Material Icons Extended (Compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
+    //okładki
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+
     // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

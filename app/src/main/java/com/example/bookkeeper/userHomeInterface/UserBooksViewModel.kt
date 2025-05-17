@@ -24,6 +24,9 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     private val _tags = MutableStateFlow<List<String>>(emptyList())
     val tags: StateFlow<List<String>> = _tags
 
+    private val _author = MutableStateFlow<List<String>>(emptyList())
+    val author: StateFlow<List<String>> = _author
+
     init {
         val database = BookDatabase.getDatabase(application)
         repository = BookRepository(application, database)
@@ -32,6 +35,7 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
         loadCategories()
         loadStatuses()
         loadTags()
+        loadAuthor()
 
         viewModelScope.launch {
             repository.syncBooksFromFirebase()
@@ -59,6 +63,12 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    private fun loadAuthor() {
+        viewModelScope.launch {
+            _author.value = repository.getAuthor()
+        }
+    }
+
     fun filterByStatus(status: String) {
         viewModelScope.launch {
             repository.getBooksByStatus(status).collect { books ->
@@ -70,6 +80,14 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     fun filterByTag(tag: String) {
         viewModelScope.launch {
             repository.getBooksByTag(tag).collect { books ->
+                _books.value = books
+            }
+        }
+    }
+
+    fun filterByAuthor(author: String) {
+        viewModelScope.launch {
+            repository.getBooksByAuthor(author).collect { books ->
                 _books.value = books
             }
         }

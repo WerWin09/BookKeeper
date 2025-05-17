@@ -15,11 +15,11 @@ import androidx.compose.ui.unit.dp
 fun CombinedFilterDialog(
     showDialog: Boolean,
     categories: List<String>,
-    tags: List<String>,
+    authors: List<String>,
     selectedCategory: String?,
-    selectedTag: String?,
+    selectedAuthor: String?,
     onCategorySelected: (String) -> Unit,
-    onTagSelected: (String) -> Unit,
+    onAuthorSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     if (!showDialog) return
@@ -33,20 +33,20 @@ fun CombinedFilterDialog(
                 Text("Kategoria", style = MaterialTheme.typography.titleMedium)
                 categories.forEach { cat ->
                     FilterRow(
-                        label      = cat,
+                        label = cat,
                         isSelected = cat == selectedCategory,
-                        onClick    = { onCategorySelected(cat) }
+                        onClick = { onCategorySelected(cat) }
                     )
                 }
                 Spacer(Modifier.height(12.dp))
 
-                // TAGI
-                Text("Tag", style = MaterialTheme.typography.titleMedium)
-                tags.forEach { tag ->
+                // AUTORZY (zamiast tagów)
+                Text("Autor", style = MaterialTheme.typography.titleMedium)
+                authors.forEach { author ->
                     FilterRow(
-                        label      = tag,
-                        isSelected = tag == selectedTag,
-                        onClick    = { onTagSelected(tag) }
+                        label = author,
+                        isSelected = author == selectedAuthor,
+                        onClick = { onAuthorSelected(author) }
                     )
                 }
             }
@@ -58,6 +58,7 @@ fun CombinedFilterDialog(
         }
     )
 }
+
 
 @Composable
 private fun FilterRow(

@@ -34,13 +34,13 @@ fun BooksByStatusScreen(
     }
     val books      by viewModel.books.collectAsStateWithLifecycle()
     val categories by viewModel.categories.collectAsStateWithLifecycle()
-    val tags       by viewModel.tags.collectAsStateWithLifecycle()
+    val authors by viewModel.author.collectAsStateWithLifecycle()
 
     // stan dla dialogu
     var showFilterDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var selectedTag      by remember { mutableStateOf<String?>(null) }
     var query            by remember { mutableStateOf("") }
+    var selectedAuthor by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -119,22 +119,23 @@ fun BooksByStatusScreen(
             }
         }
 
-        // 4) dialog filtrowania kategorii i tagów
+        // 4) dialog filtrowania kategorii i autora
         CombinedFilterDialog(
-            showDialog       = showFilterDialog,
-            categories       = categories,
-            tags             = tags,
-            selectedCategory = selectedCategory,
-            selectedTag      = selectedTag,
+            showDialog         = showFilterDialog,
+            categories         = categories,
+            authors            = authors,
+            selectedCategory   = selectedCategory,
+            selectedAuthor     = selectedAuthor,
             onCategorySelected = { cat ->
                 selectedCategory = cat
                 viewModel.filterByCategory(cat)
             },
-            onTagSelected    = { tg ->
-                selectedTag = tg
-                viewModel.filterByTag(tg)
+            onAuthorSelected = { author ->
+                selectedAuthor = author
+                viewModel.filterByAuthor(author)
             },
-            onDismiss        = { showFilterDialog = false }
+            onDismiss = { showFilterDialog = false }
         )
+
     }
 }

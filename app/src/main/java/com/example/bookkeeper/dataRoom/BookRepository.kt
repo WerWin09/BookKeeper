@@ -92,6 +92,17 @@ class BookRepository (
         return db.bookDao().getBooksByTag(uid, tag.trim())
     }
 
+    suspend fun getAuthor(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        return db.bookDao().getAuthor(uid)
+    }
+
+    fun getBooksByAuthor(author: String): Flow<List<BookEntity>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        return db.bookDao().getBooksByAuthor(uid, author)
+    }
+
+
     suspend fun updateBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         // Upewniamy się, że przekazujemy userId w encji
