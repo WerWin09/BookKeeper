@@ -71,10 +71,10 @@ private fun FilterRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(8.dp)
+            .padding(0.dp)
     ) {
         RadioButton(selected = isSelected, onClick = onClick)
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(0.dp))
         Text(label)
     }
 }

@@ -23,7 +23,7 @@ abstract class BookDatabase : RoomDatabase() {
                     BookDatabase::class.java,
                     "book_database"
                 )
-                    .fallbackToDestructiveMigration() // <-- TA LINIA!
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
