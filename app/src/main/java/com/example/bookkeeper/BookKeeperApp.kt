@@ -11,7 +11,7 @@ class BookKeeperApp : Application() {
 
         // Globalny przechwyt wyjątków
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            Log.e("AppCrash", "Nieprzechwycony wyjątek: ${throwable.localizedMessage}", throwable)
+            Log.e("BookKeeper_DEBUG", "Nieprzechwycony wyjątek: ${throwable.localizedMessage}", throwable)
         }
     }
 }

@@ -64,6 +64,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.google.firebase:firebase-storage-ktx:20.3.0") //okladki
 
     // Room
     implementation(libs.androidx.room.runtime)
@@ -96,6 +97,8 @@ dependencies {
 
     //okładki
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+
 
 
     // Test dependencies

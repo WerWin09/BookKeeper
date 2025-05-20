@@ -15,5 +15,25 @@ data class BookEntity(
     val rating: Int?,
     val userId: String,
     val tags: List<String> = emptyList(),
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+
+    // okladka
+    val coverUrlRemote: String?, // Link do Firebase Storage
+    var coverLocalPath: String?  // Ścieżka lokalna do pliku (cache offline)
+
+
+)
+
+
+fun BookEntity.toFirestoreMap(): Map<String, Any?> = mapOf(
+    "title"          to title,
+    "author"         to author,
+    "status"         to status,
+    "category"       to category,
+    "description"    to description,
+    "rating"         to rating,
+    "userId"         to userId,
+    "tags"           to tags,
+    "coverUrlRemote" to coverUrlRemote,
+    "isSynced"       to isSynced
 )

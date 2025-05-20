@@ -15,6 +15,9 @@ fun mapGoogleBookToBookEntity(item: GoogleBookItem): BookEntity {
         description = volume.description,
         rating = volume.averageRating?.toInt(),
         userId = "",
-        isSynced = false
+        tags = emptyList(),
+        isSynced = false,
+        coverUrlRemote = null,
+        coverLocalPath = null
     )
 }

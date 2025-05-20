@@ -174,7 +174,9 @@ fun ManualAddBookScreen(
                             description = description.trim().takeIf { it.isNotEmpty() },
                             rating = rating,
                             userId = "",
-                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                            coverUrlRemote = null,
+                            coverLocalPath = null
                         )
                         viewModel.addBook(newBook)
                         onBackToHome()

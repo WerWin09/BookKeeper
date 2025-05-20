@@ -13,6 +13,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.utils.Constants.statusOptions
+import androidx.compose.material.icons.filled.Photo
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +33,16 @@ fun EditBookScreen(
     viewModel: UserBooksViewModel
 ) {
     var bookState by remember { mutableStateOf<BookEntity?>(null) }
+    var coverPath by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        imageUri = uri
+    }
+
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
@@ -32,13 +52,16 @@ fun EditBookScreen(
     var tags by remember { mutableStateOf<List<String>>(emptyList()) }
     var statusExpanded by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(bookId) {
-        bookId?.let {
-            val book = viewModel.getBookById(it)
-            bookState = book
+    LaunchedEffect(key1 = true) {
+        if (bookId != null) {
+            val refreshedBook = viewModel.getBookById(bookId)
+            Log.d("BookKeeper_DEBUG", "Załadowano książkę: ${refreshedBook?.title}, okładka: ${refreshedBook?.coverLocalPath}")
+            bookState = refreshedBook
+            coverPath = refreshedBook?.coverLocalPath
         }
     }
+
+
 
     LaunchedEffect(bookState) {
         bookState?.let { book ->
@@ -49,6 +72,28 @@ fun EditBookScreen(
             description = book.description ?: ""
             rating = book.rating
             tags = book.tags
+            coverPath = book.coverLocalPath
+        }
+    }
+
+    val displayBitmap = remember(coverPath to imageUri) {
+        when {
+            imageUri != null -> {
+                try {
+                    val inputStream = context.contentResolver.openInputStream(imageUri!!)
+                    android.graphics.BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            !coverPath.isNullOrEmpty() -> {
+                try {
+                    android.graphics.BitmapFactory.decodeFile(coverPath)?.asImageBitmap()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            else -> null
         }
     }
 
@@ -58,10 +103,7 @@ fun EditBookScreen(
                 title = { Text("Edytuj książkę") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Wróć"
-                        )
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Wróć")
                     }
                 }
             )
@@ -84,6 +126,43 @@ fun EditBookScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                Text(text = "Okładka:", style = MaterialTheme.typography.titleMedium)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (displayBitmap != null) {
+                        Image(
+                            bitmap = displayBitmap,
+                            contentDescription = "Okładka książki",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Photo,
+                            contentDescription = "Brak okładki",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Text(if (imageUri != null || !coverPath.isNullOrEmpty()) "Zmień okładkę" else "Dodaj okładkę")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -133,7 +212,6 @@ fun EditBookScreen(
                     }
                 }
 
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
@@ -156,8 +234,6 @@ fun EditBookScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tutaj możesz dodać więcej pól do edycji
-
                 Button(
                     onClick = {
                         val updatedBook = bookState!!.copy(
@@ -169,7 +245,11 @@ fun EditBookScreen(
                             rating = rating,
                             tags = tags
                         )
-                        viewModel.updateBook(updatedBook)
+
+                        // ⬇⬇⬇ Tutaj dodaj log
+                        Log.d("BookKeeper_DEBUG", "Zapisuję książkę z imageUri = $imageUri")
+
+                        viewModel.saveBookWithCover(updatedBook, imageUri = imageUri)
                         onBack()
                     },
                     modifier = Modifier
@@ -178,6 +258,7 @@ fun EditBookScreen(
                 ) {
                     Text("Zapisz zmiany")
                 }
+
             }
         }
     }

@@ -1,19 +1,33 @@
 package com.example.bookkeeper.dataRoom
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import com.example.bookkeeper.userHomeInterface.data.saveToLocalCache
 import com.example.bookkeeper.utils.hasInternet
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
+import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+import java.io.IOException
+
 
 class BookRepository (
     private val context: Context,
     private val db: BookDatabase,
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val storage: FirebaseStorage = Firebase.storage
 ) {
 
     fun getBooksFlow(): Flow<List<BookEntity>> {
@@ -63,8 +77,6 @@ class BookRepository (
         db.bookDao().insertBook(finalBook)
     }
 
-
-
     suspend fun getBookById(bookId: Int): BookEntity? {
         return db.bookDao().getBookById(bookId)
     }
@@ -77,7 +89,7 @@ class BookRepository (
     suspend fun getTags(): List<String> {
         val uid = auth.currentUser?.uid ?: return emptyList()
         val tags = db.bookDao().getTags(uid)
-        Log.d("BookRepository", "Pobrane tagi: $tags")
+        Log.d("BookKeeper_DEBUG", "Pobrane tagi: $tags")
         return tags
     }
 
@@ -102,7 +114,6 @@ class BookRepository (
         return db.bookDao().getBooksByAuthor(uid, author)
     }
 
-
     suspend fun updateBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
         // Upewniamy się, że przekazujemy userId w encji
@@ -124,7 +135,6 @@ class BookRepository (
         db.bookDao().insertBook(updatedBook)
     }
 
-
     suspend fun deleteBook(book: BookEntity) {
         val uid = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
@@ -143,8 +153,6 @@ class BookRepository (
         // 2) zawsze usuwamy lokalnie
         db.bookDao().deleteBook(book)
     }
-
-
 
     //synchronizacja baz po dodaniu z reki ksiazki w bazie room
     suspend fun syncUnsyncedBooks() {
@@ -168,8 +176,6 @@ class BookRepository (
         }
     }
 
-
-
     suspend fun syncBooksFromFirebase() {
         if (!hasInternet(context)) return
 
@@ -185,8 +191,8 @@ class BookRepository (
             val books = snapshot.mapNotNull { doc ->
                 try {
                     BookEntity(
-                        id           = 0,                 // autogenerowane w Room
-                        remoteDocId  = doc.id,            // klucz Firestore
+                        id           = 0,
+                        remoteDocId  = doc.id,
                         title        = doc.getString("title") ?: "",
                         author       = doc.getString("author") ?: "",
                         status       = doc.getString("status") ?: "",
@@ -195,23 +201,128 @@ class BookRepository (
                         rating       = (doc.get("rating") as? Long)?.toInt(),
                         userId       = uid,
                         tags         = (doc.get("tags") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                        coverUrlRemote = doc.getString("coverUrlRemote"),
+                        coverLocalPath = null,
                         isSynced     = true
                     )
+
                 } catch (e: Exception) {
                     Log.e("FirestoreSync", "Error processing doc=${doc.id}", e)
                     null
                 }
             }
 
+            for (book in books) {
+                if (book.coverUrlRemote != null && book.coverLocalPath == null) {
+                    val file = File(context.cacheDir, "${book.remoteDocId}.jpg")
+                    if (!file.exists()) {
+                        try {
+                            val url = URL(book.coverUrlRemote)
+                            url.openStream().use { input ->
+                                FileOutputStream(file).use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            book.coverLocalPath = file.absolutePath
+                        } catch (e: Exception) {
+                            Log.e("DownloadCover", "Nie udało się pobrać okładki dla ${book.title}", e)
+                        }
+                    } else {
+                        book.coverLocalPath = file.absolutePath
+                    }
+                }
+            }
+
+
             // 1) Wyczyść stare dane lokalne
             db.bookDao().deleteBooksByUser(uid)
             // 2) Wstaw nowe, zsynchronizowane
             db.bookDao().insertBooks(books)
-            Log.d("FirestoreSync", "Synchronized ${books.size} books from Firebase")
+            Log.d("BookKeeper_DEBUG", "Synchronized ${books.size} books from Firebase")
         } catch (e: Exception) {
-            Log.e("FirestoreSync", "Error fetching from Firebase", e)
+            Log.e("BookKeeper_DEBUG", "Error fetching from Firebase", e)
         }
     }
+
+    //okladki
+    suspend fun uploadCoverToFirebaseStorage(docId: String, imageUri: Uri): String {
+        val ref = storage.reference.child("book_covers/$docId.jpg")
+
+        val localPath = saveToLocalCache(context, docId, imageUri)
+        Log.d("BookKeeper_DEBUG", "Ścieżka lokalna pliku do uploadu: $localPath")
+
+        if (localPath.isNotEmpty()) {
+            ref.putFile(imageUri).await()
+            return ref.downloadUrl.await().toString()
+        } else {
+            Log.e("BookKeeper_DEBUG", "Nie udało się zapisać okładki lokalnie – przerwano upload.")
+            throw IOException("Błąd lokalnego zapisu okładki")
+        }
+    }
+
+
+
+
+
+    suspend fun saveBookWithCover(book: BookEntity, imageUri: Uri?) {
+        val uid = auth.currentUser?.uid ?: return
+        val docId = book.remoteDocId ?: firestore.collection("books").document().id
+
+        val updatedBook = if (imageUri != null) {
+            Log.d("BookKeeper_DEBUG", "URI do przesłania: $imageUri")
+
+            val remoteUrl = uploadCoverToFirebaseStorage(docId, imageUri)
+            val localPath = saveToLocalCache(context, docId, imageUri)
+
+            Log.d("BookKeeper_DEBUG", "Zapisano okładkę lokalnie: $localPath")
+            Log.d("BookKeeper_DEBUG", "Zapisano lokalnie do: $localPath")
+            Log.d("BookKeeper_DEBUG", "Zdalny URL: $remoteUrl")
+
+
+            book.copy(
+                userId = uid,
+                remoteDocId = docId,
+                isSynced = true,
+                coverUrlRemote = remoteUrl,
+                coverLocalPath = localPath
+            )
+        } else {
+            book.copy(
+                userId = uid,
+                remoteDocId = docId,
+                isSynced = true
+            )
+        }
+
+        saveToRoomAndFirestore(updatedBook)
+    }
+
+
+
+
+    private suspend fun saveToRoomAndFirestore(book: BookEntity) {
+        val uid = auth.currentUser?.uid ?: return
+
+        // Jeśli nie ma remoteDocId, generujemy nowe
+        val docId = book.remoteDocId ?: firestore.collection("books").document().id
+
+        // Tworzymy encję z userId i docId
+        val updatedBook = book.copy(
+            userId = uid,
+            remoteDocId = docId,
+            isSynced = true
+        )
+
+        // Zapis do Room
+        db.bookDao().insertBook(updatedBook)
+
+        // Zapis do Firestore
+        firestore.collection("books")
+            .document(docId)
+            .set(updatedBook.toFirestoreMap())
+    }
+
+
 
 
 
