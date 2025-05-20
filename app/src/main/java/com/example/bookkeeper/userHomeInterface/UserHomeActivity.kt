@@ -1,5 +1,6 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,9 +10,11 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.bookkeeper.MainActivity
 import com.example.bookkeeper.addBook.addBookGoogleApi.*
 import com.example.bookkeeper.ui.theme.BookKeeperTheme
 import com.example.bookkeeper.utils.UserBooksViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 class UserHomeActivity : ComponentActivity() {
     private lateinit var userBooksViewModel: UserBooksViewModel
@@ -19,6 +22,12 @@ class UserHomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+
         val factory = UserBooksViewModelFactory(application)
         userBooksViewModel = ViewModelProvider(this, factory)[UserBooksViewModel::class.java]
         searchBooksViewModel = ViewModelProvider(this)[SearchBooksViewModel::class.java]

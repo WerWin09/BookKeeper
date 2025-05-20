@@ -14,6 +14,10 @@ class AuthViewModel : ViewModel() {
     private val _authState = MutableStateFlow<AuthResult>(AuthResult.Idle)
     val authState: StateFlow<AuthResult> = _authState
 
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
     //rejestracja konta
     fun register(email: String, password: String) {
         viewModelScope.launch {
@@ -35,10 +39,12 @@ class AuthViewModel : ViewModel() {
             _authState.value = AuthResult.Loading
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
-                    _authState.value = if (task.isSuccessful) {
-                        AuthResult.Success
+                    if (task.isSuccessful) {
+                        // Upewnij się, że stan jest trwale zapisany
+                        auth.currentUser?.getIdToken(true)
+                        _authState.value = AuthResult.Success
                     } else {
-                        AuthResult.Error(task.exception?.message ?: "Nieznany błąd")
+                        _authState.value = AuthResult.Error(task.exception?.message ?: "Nieznany błąd")
                     }
                 }
         }
