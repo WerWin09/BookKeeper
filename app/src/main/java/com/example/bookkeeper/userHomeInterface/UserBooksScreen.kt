@@ -30,7 +30,6 @@ fun UserBooksScreen(
     onAddBook: () -> Unit,
     onBookClick: (Int) -> Unit,
     onStatusClick: (String) -> Unit,
-    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val allBooks    by viewModel.books.collectAsStateWithLifecycle()
@@ -59,14 +58,6 @@ fun UserBooksScreen(
                         containerColor = MainColor
                     ),
                     actions = {
-                        // Przycisk wylogowania
-                        IconButton(onClick = onLogout) {
-                            Icon(
-                                Icons.Default.Logout,
-                                contentDescription = "Wyloguj",
-                                tint = Color.Black
-                            )
-                        }
                         // Istniejący przycisk filtrowania
                         IconButton(onClick = { showFilterDialog = true }) {
                             Icon(
