@@ -20,6 +20,12 @@ class UserHomeActivity : ComponentActivity() {
     private lateinit var userBooksViewModel: UserBooksViewModel
     private lateinit var searchBooksViewModel: SearchBooksViewModel
 
+    private fun logout() {
+        FirebaseAuth.getInstance().signOut()
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,6 +42,7 @@ class UserHomeActivity : ComponentActivity() {
             BookKeeperTheme {
                 val navController = rememberNavController()
                 Surface {
+
                     NavHost(navController = navController, startDestination = "userBooks") {
                         composable("userBooks") {
                             UserBooksScreen(
@@ -44,7 +51,8 @@ class UserHomeActivity : ComponentActivity() {
                                 onBookClick = { id -> navController.navigate("bookDetails/$id") },
                                 onStatusClick = { status ->
                                     navController.navigate("booksByStatus/$status")
-                                }
+                                },
+                                onLogout = { logout() }
                             )
                         }
                         composable(
@@ -139,6 +147,7 @@ class UserHomeActivity : ComponentActivity() {
                     }
                 }
             }
+
         }
     }
 }

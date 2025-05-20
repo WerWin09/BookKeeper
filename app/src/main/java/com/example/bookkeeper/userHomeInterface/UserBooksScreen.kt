@@ -21,6 +21,7 @@ import com.example.bookkeeper.R
 import com.example.bookkeeper.ui.theme.BackgroundColor
 import com.example.bookkeeper.ui.theme.MainColor
 import com.example.bookkeeper.utils.Constants
+import androidx.compose.material.icons.filled.Logout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +30,7 @@ fun UserBooksScreen(
     onAddBook: () -> Unit,
     onBookClick: (Int) -> Unit,
     onStatusClick: (String) -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val allBooks    by viewModel.books.collectAsStateWithLifecycle()
@@ -57,8 +59,21 @@ fun UserBooksScreen(
                         containerColor = MainColor
                     ),
                     actions = {
+                        // Przycisk wylogowania
+                        IconButton(onClick = onLogout) {
+                            Icon(
+                                Icons.Default.Logout,
+                                contentDescription = "Wyloguj",
+                                tint = Color.Black
+                            )
+                        }
+                        // Istniejący przycisk filtrowania
                         IconButton(onClick = { showFilterDialog = true }) {
-                            Icon(Icons.Default.FilterAlt, contentDescription = "Filtruj")
+                            Icon(
+                                Icons.Default.FilterAlt,
+                                contentDescription = "Filtruj",
+                                tint = Color.Black
+                            )
                         }
                     }
                 )
