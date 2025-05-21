@@ -21,6 +21,7 @@ import com.example.bookkeeper.R
 import com.example.bookkeeper.ui.theme.BackgroundColor
 import com.example.bookkeeper.ui.theme.MainColor
 import com.example.bookkeeper.utils.Constants
+import androidx.compose.material.icons.filled.Logout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,8 +58,13 @@ fun UserBooksScreen(
                         containerColor = MainColor
                     ),
                     actions = {
+                        // Istniejący przycisk filtrowania
                         IconButton(onClick = { showFilterDialog = true }) {
-                            Icon(Icons.Default.FilterAlt, contentDescription = "Filtruj")
+                            Icon(
+                                Icons.Default.FilterAlt,
+                                contentDescription = "Filtruj",
+                                tint = Color.Black
+                            )
                         }
                     }
                 )
