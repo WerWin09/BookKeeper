@@ -257,6 +257,7 @@ fun ManualAddBookScreen(
                             tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
                             coverUrlRemote = null,
                             coverLocalPath = null
+
                         )
 
                         Log.d("BookKeeper_DEBUG", "Dodaję książkę z imageUri = $imageUri")
