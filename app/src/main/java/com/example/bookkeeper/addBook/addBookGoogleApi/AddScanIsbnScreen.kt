@@ -29,6 +29,14 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
+import android.Manifest
+import android.content.Intent
+import android.provider.Settings
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.core.app.ActivityCompat
+import android.os.Build
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,18 +46,17 @@ fun ScanIsbnScreen(
     input: String,
     onBackToCaller: () -> Unit,
     searchViewModel: SearchBooksViewModel
-)
- {
-     val context = LocalContext.current
-     Log.d("ScanIsbn", "SearchBooksVM hash in ScanIsbnScreen: ${searchViewModel.hashCode()}")
-
+) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isProcessing by remember { mutableStateOf(false) }
     var showNoResultDialog by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
+    // Launchery
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
@@ -60,15 +67,10 @@ fun ScanIsbnScreen(
             if (bmp != null) {
                 bitmap = bmp
                 isProcessing = true
-                runOcrAndExtractIsbn(
-                    bmp = bmp,
-                    scope = scope,
-                    searchViewModel = searchViewModel,
-                    onNotFound = {
-                        showNoResultDialog = true
-                        isProcessing = false
-                    }
-                )
+                runOcrAndExtractIsbn(bmp, scope, searchViewModel) {
+                    showNoResultDialog = true
+                    isProcessing = false
+                }
             }
         }
     }
@@ -84,20 +86,16 @@ fun ScanIsbnScreen(
                 if (bmp != null) {
                     bitmap = bmp
                     isProcessing = true
-                    runOcrAndExtractIsbn(
-                        bmp = bmp,
-                        scope = scope,
-                        searchViewModel = searchViewModel,
-                        onNotFound = {
-                            showNoResultDialog = true
-                            isProcessing = false
-                        }
-                    )
+                    runOcrAndExtractIsbn(bmp, scope, searchViewModel) {
+                        showNoResultDialog = true
+                        isProcessing = false
+                    }
                 }
             }
         }
     }
 
+    // Funkcja pomocnicza do tworzenia URI
     fun createImageUri(): Uri? {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val contentValues = ContentValues().apply {
@@ -108,7 +106,8 @@ fun ScanIsbnScreen(
         return context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     }
 
-    LaunchedEffect(Unit) {
+    // Funkcja uruchamiająca aparat lub galerię
+    fun proceedWithImageInput() {
         if (input == "camera") {
             imageUri = createImageUri()
             imageUri?.let { cameraLauncher.launch(it) } ?: onBackToCaller()
@@ -117,22 +116,57 @@ fun ScanIsbnScreen(
         }
     }
 
-    BackHandler {
-        onBackToCaller()
+    // Prośba o uprawnienia – tylko jeśli nie są już nadane
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted) {
+            proceedWithImageInput()
+        } else {
+            showPermissionDialog = true
+        }
     }
 
-    val navigateToEdit by searchViewModel.navigateToEdit.collectAsState()
+    val requiredPermissions = when (input) {
+        "camera" -> arrayOf(Manifest.permission.CAMERA)
+        "gallery" -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+        else -> emptyArray()
+    }
 
-    LaunchedEffect(navigateToEdit) {
-        Log.d("ScanIsbn", "LaunchedEffect navigateToEdit = $navigateToEdit")
-        if (navigateToEdit) {
-            navController.navigate("editImportedBook")
-            Log.d("ScanIsbn", "Nawigacja do editImportedBook")
-            searchViewModel.onNavigatedToEditScreen()
+    LaunchedEffect(Unit) {
+        val allGranted = requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (allGranted) {
+            proceedWithImageInput()
+        } else {
+            permissionLauncher.launch(requiredPermissions)
         }
     }
 
 
+    BackHandler {
+        onBackToCaller()
+    }
+
+    // Nawigacja po znalezieniu książki
+    val navigateToEdit by searchViewModel.navigateToEdit.collectAsState()
+    LaunchedEffect(navigateToEdit) {
+        if (navigateToEdit) {
+            navController.navigate("editImportedBook")
+            searchViewModel.onNavigatedToEditScreen()
+        }
+    }
+
+    // UI
     Scaffold(
         topBar = {
             TopAppBar(
@@ -179,7 +213,37 @@ fun ScanIsbnScreen(
             }
         }
     }
+
+    // Dialog z przekierowaniem do ustawień aplikacji
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Brak uprawnień") },
+            text = { Text("Aby korzystać z tej funkcji, nadaj uprawnienia w ustawieniach systemowych.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionDialog = false
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }) {
+                    Text("Przejdź do ustawień")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showPermissionDialog = false
+                    onBackToCaller()
+                }) {
+                    Text("Anuluj")
+                }
+            }
+        )
+    }
 }
+
+
 
 fun runOcrAndExtractIsbn(
     bmp: Bitmap,
@@ -218,6 +282,9 @@ fun runOcrAndExtractIsbn(
             }
         }
     }
+
+
 }
+
 
 
