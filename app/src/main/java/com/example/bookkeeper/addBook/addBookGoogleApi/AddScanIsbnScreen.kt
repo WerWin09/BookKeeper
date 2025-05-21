@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bookkeeper.utils.await
 import com.google.mlkit.vision.common.InputImage
@@ -28,10 +29,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.bookkeeper.utils.mapGoogleBookToBookEntity
-import com.example.bookkeeper.addBook.addBookGoogleApi.SearchBooksViewModel
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,11 +36,13 @@ fun ScanIsbnScreen(
     navController: NavController,
     source: String,
     input: String,
-    onIsbnFound: (String) -> Unit,
     onBackToCaller: () -> Unit,
-    searchViewModel: SearchBooksViewModel = viewModel()
-) {
-    val context = LocalContext.current
+    searchViewModel: SearchBooksViewModel
+)
+ {
+     val context = LocalContext.current
+     Log.d("ScanIsbn", "SearchBooksVM hash in ScanIsbnScreen: ${searchViewModel.hashCode()}")
+
     val scope = rememberCoroutineScope()
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -55,27 +54,16 @@ fun ScanIsbnScreen(
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri == null) {
-            navController.popBackStack()
+            onBackToCaller()
         } else {
-            // 1) wczytaj bitmapę z URI
-            val bmp = BitmapFactory.decodeStream(
-                context.contentResolver.openInputStream(uri)
-            )
+            val bmp = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
             if (bmp != null) {
-                // pokaż ją i spinner
                 bitmap = bmp
                 isProcessing = true
-
-                // 2) OCR + nawigacja
                 runOcrAndExtractIsbn(
-                    bmp,
-                    scope,
-                    onIsbnFound = { isbn ->
-                        // trigger live-search w VM
-                        searchViewModel.searchBooks(isbn)
-                        // przejdź do ekranu edycji
-                        navController.navigate("editImportedBook")
-                    },
+                    bmp = bmp,
+                    scope = scope,
+                    searchViewModel = searchViewModel,
                     onNotFound = {
                         showNoResultDialog = true
                         isProcessing = false
@@ -89,24 +77,17 @@ fun ScanIsbnScreen(
         ActivityResultContracts.TakePicture()
     ) { success ->
         if (!success) {
-            navController.popBackStack()
+            onBackToCaller()
         } else {
             imageUri?.let { uri ->
-                // analogicznie: dekoduj bmp
-                val bmp = BitmapFactory.decodeStream(
-                    context.contentResolver.openInputStream(uri)
-                )
+                val bmp = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
                 if (bmp != null) {
                     bitmap = bmp
                     isProcessing = true
-
                     runOcrAndExtractIsbn(
-                        bmp,
-                        scope,
-                        onIsbnFound = { isbn ->
-                            searchViewModel.searchBooks(isbn)
-                            navController.navigate("editImportedBook")
-                        },
+                        bmp = bmp,
+                        scope = scope,
+                        searchViewModel = searchViewModel,
                         onNotFound = {
                             showNoResultDialog = true
                             isProcessing = false
@@ -130,22 +111,34 @@ fun ScanIsbnScreen(
     LaunchedEffect(Unit) {
         if (input == "camera") {
             imageUri = createImageUri()
-            imageUri?.let { cameraLauncher.launch(it) } ?: navigateBack(navController)
+            imageUri?.let { cameraLauncher.launch(it) } ?: onBackToCaller()
         } else {
             galleryLauncher.launch("image/*")
         }
     }
 
     BackHandler {
-        navigateBack(navController)
+        onBackToCaller()
     }
+
+    val navigateToEdit by searchViewModel.navigateToEdit.collectAsState()
+
+    LaunchedEffect(navigateToEdit) {
+        Log.d("ScanIsbn", "LaunchedEffect navigateToEdit = $navigateToEdit")
+        if (navigateToEdit) {
+            navController.navigate("editImportedBook")
+            Log.d("ScanIsbn", "Nawigacja do editImportedBook")
+            searchViewModel.onNavigatedToEditScreen()
+        }
+    }
+
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Zeskanuj ISBN") },
                 navigationIcon = {
-                    IconButton(onClick = { navigateBack(navController) }) {
+                    IconButton(onClick = onBackToCaller) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Cofnij")
                     }
                 }
@@ -177,7 +170,7 @@ fun ScanIsbnScreen(
                     confirmButton = {
                         TextButton(onClick = {
                             showNoResultDialog = false
-                            navigateBack(navController)
+                            onBackToCaller()
                         }) {
                             Text("OK")
                         }
@@ -188,16 +181,10 @@ fun ScanIsbnScreen(
     }
 }
 
-private fun navigateBack(navController: NavController) {
-    navController.navigate("searchBooks") {
-        popUpTo("searchBooks") { inclusive = true }
-    }
-}
-
 fun runOcrAndExtractIsbn(
     bmp: Bitmap,
     scope: CoroutineScope,
-    onIsbnFound: (String) -> Unit,
+    searchViewModel: SearchBooksViewModel,
     onNotFound: () -> Unit
 ) {
     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -216,7 +203,7 @@ fun runOcrAndExtractIsbn(
             if (isbn != null) {
                 Log.d("ScanIsbn", "ISBN znaleziony: $isbn")
                 withContext(Dispatchers.Main) {
-                    onIsbnFound(isbn)
+                    searchViewModel.searchBooks(isbn)
                 }
             } else {
                 Log.d("ScanIsbn", "Nie znaleziono ISBN")
@@ -232,3 +219,5 @@ fun runOcrAndExtractIsbn(
         }
     }
 }
+
+

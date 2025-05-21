@@ -1,5 +1,6 @@
 package com.example.bookkeeper.addBook.addBookGoogleApi
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bookkeeper.dataRoom.BookEntity
@@ -32,12 +34,22 @@ import com.example.bookkeeper.utils.Constants.statusOptions
 @Composable
 fun EditImportedBookScreen(
     navController: NavController,
-    viewModel: UserBooksViewModel = viewModel(),
-    searchViewModel: SearchBooksViewModel = viewModel(),
-    selectedBook: BookEntity?
+    viewModel: UserBooksViewModel,
+    searchViewModel: SearchBooksViewModel
 ) {
+    val selectedBookState = searchViewModel.selectedBook.collectAsStateWithLifecycle()
+    val selectedBook = selectedBookState.value
+
+    Log.d("ScanIsbn", "SearchBooksVM hash in EditImportedBookScreen: ${searchViewModel.hashCode()}")
+    Log.d("ScanIsbn", "selectedBook = $selectedBook")
+
     if (selectedBook == null) {
-        Text("Nie wybrano książki.")
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Nie wybrano książki.")
+        }
         return
     }
 
@@ -45,10 +57,7 @@ fun EditImportedBookScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        imageUri = uri
-    }
-
+    ) { uri -> imageUri = uri }
 
     var status by remember { mutableStateOf(selectedBook.status) }
     var rating by remember { mutableStateOf(selectedBook.rating) }
@@ -58,28 +67,22 @@ fun EditImportedBookScreen(
     var showSnackbar by remember { mutableStateOf(false) }
 
     val displayBitmap = remember(imageUri to selectedBook.coverUrlRemote) {
-        when {
-            imageUri != null -> {
-                try {
+        try {
+            when {
+                imageUri != null -> {
                     val inputStream = context.contentResolver.openInputStream(imageUri!!)
-                    android.graphics.BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
-                } catch (e: Exception) {
-                    null
+                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
                 }
-            }
-            !selectedBook.coverUrlRemote.isNullOrEmpty() -> {
-                try {
+                !selectedBook.coverUrlRemote.isNullOrEmpty() -> {
                     val url = java.net.URL(selectedBook.coverUrlRemote)
-                    val bitmap = android.graphics.BitmapFactory.decodeStream(url.openStream())
-                    bitmap?.asImageBitmap()
-                } catch (e: Exception) {
-                    null
+                    BitmapFactory.decodeStream(url.openStream())?.asImageBitmap()
                 }
+                else -> null
             }
-            else -> null
+        } catch (e: Exception) {
+            null
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -102,7 +105,7 @@ fun EditImportedBookScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = "Okładka:", style = MaterialTheme.typography.titleMedium)
+            Text("Okładka:", style = MaterialTheme.typography.titleMedium)
 
             Box(
                 modifier = Modifier
@@ -112,62 +115,25 @@ fun EditImportedBookScreen(
                     .padding(4.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (displayBitmap != null) {
-                    Image(
-                        bitmap = displayBitmap,
-                        contentDescription = "Okładka książki",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Photo,
-                        contentDescription = "Brak okładki",
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+                displayBitmap?.let {
+                    Image(bitmap = it, contentDescription = "Okładka książki", modifier = Modifier.fillMaxSize())
+                } ?: Icon(
+                    imageVector = Icons.Default.Photo,
+                    contentDescription = "Brak okładki",
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
 
-            Button(
-                onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
+            Button(onClick = { galleryLauncher.launch("image/*") }) {
                 Text("Zmień okładkę")
             }
 
+            OutlinedTextField(value = selectedBook.title, onValueChange = {}, label = { Text("Tytuł") }, readOnly = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = selectedBook.author, onValueChange = {}, label = { Text("Autor") }, readOnly = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = selectedBook.category.orEmpty(), onValueChange = {}, label = { Text("Kategoria") }, readOnly = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = selectedBook.description.orEmpty(), onValueChange = {}, label = { Text("Opis") }, readOnly = true, modifier = Modifier.fillMaxWidth(), maxLines = 3)
 
-            // --- Pól tylko do odczytu ---
-            OutlinedTextField(
-                value = selectedBook.title,
-                onValueChange = {},
-                label = { Text("Tytuł") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = selectedBook.author,
-                onValueChange = {},
-                label = { Text("Autor") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = selectedBook.category ?: "",
-                onValueChange = {},
-                label = { Text("Kategoria") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = selectedBook.description ?: "",
-                onValueChange = {},
-                label = { Text("Opis") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 3
-            )
-
-            // --- Dropdown statusu ---
             ExposedDropdownMenuBox(
                 expanded = statusExpanded,
                 onExpandedChange = { statusExpanded = !statusExpanded },
@@ -178,19 +144,12 @@ fun EditImportedBookScreen(
                     onValueChange = {},
                     label = { Text("Status *") },
                     readOnly = true,
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth(),
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = statusExpanded
-                        )
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                     }
                 )
-                ExposedDropdownMenu(
-                    expanded = statusExpanded,
-                    onDismissRequest = { statusExpanded = false }
-                ) {
+                ExposedDropdownMenu(expanded = statusExpanded, onDismissRequest = { statusExpanded = false }) {
                     statusOptions.forEach { option ->
                         DropdownMenuItem(
                             text = { Text(option) },
@@ -203,68 +162,50 @@ fun EditImportedBookScreen(
                 }
             }
 
-            // --- Pola rating ---
             OutlinedTextField(
-                value = rating?.toString() ?: "",
-                onValueChange = {
-                    rating = it.toIntOrNull()?.takeIf { it in 1..5 }
-                },
-                label = { Text("Ocena (1-5)") },
+                value = rating?.toString().orEmpty(),
+                onValueChange = { rating = it.toIntOrNull()?.takeIf { it in 1..5 } },
+                label = { Text("Ocena (1–5)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // --- Przyciski Anuluj / Dodaj ---
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                OutlinedButton(onClick = { navController.popBackStack() }, modifier = Modifier.padding(end = 8.dp)) {
                     Text("Anuluj")
                 }
                 Button(
                     onClick = {
-                        val book = selectedBook.copy(
-                            status = status.trim(),
-                            rating = rating
-                        )
-
-                        Log.d("BookKeeper_DEBUG", "Zapisuję książkę z imageUri = $imageUri")
-
+                        val book = selectedBook.copy(status = status.trim(), rating = rating)
                         viewModel.saveBookWithCover(book, imageUri = imageUri)
                         searchViewModel.clearFields()
+                        searchViewModel.clearSelectedBook()
                         showSnackbar = true
                     },
                     enabled = status.isNotBlank()
                 ) {
                     Text("Dodaj książkę")
                 }
-
             }
 
-            Text(
-                "* Edytowalne pola",
-                style = MaterialTheme.typography.labelSmall
-            )
+            Text("* Edytowalne pola", style = MaterialTheme.typography.labelSmall)
         }
     }
 
-    // --- Efekt: snackbar + nawigacja do SearchBooksScreen ---
-    LaunchedEffect(showSnackbar) {
-        if (showSnackbar) {
-            // 1) nawigujemy od razu do SearchBooksScreen, czyszcząc wszystko powyżej
-            navController.navigate("searchBooks") {
-                popUpTo("searchBooks") { inclusive = true }
+    LaunchedEffect(Unit) {
+        snapshotFlow { showSnackbar }.collect { show ->
+            if (show) {
+                navController.navigate("manualAddBook") {
+                    popUpTo("manualAddBook") { inclusive = true }
+                }
+                navController.getBackStackEntry("manualAddBook")
+                    .savedStateHandle
+                    .set("showSnackbarMessage", "Dodano książkę")
+
+                showSnackbar = false // zresetuj po użyciu
             }
-            // 2) dopiero teraz ustawiamy flagę na tym entry, żeby SearchBooksScreen odczytał ją natychmiast
-            navController
-                .getBackStackEntry("searchBooks")
-                .savedStateHandle
-                .set("showSnackbarMessage", "Dodano książkę")
         }
     }
-
 }
+
+

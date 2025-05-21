@@ -1,5 +1,6 @@
 package com.example.bookkeeper.addBook.addBookGoogleApi
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookkeeper.dataRoom.BookEntity
@@ -11,9 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Query
-
 
 data class GoogleBooksResponse(
     val items: List<GoogleBookItem>?
@@ -47,24 +45,33 @@ class SearchBooksViewModel : ViewModel() {
                 val isIsbn = query.matches(Regex("""97[89][\d\- ]{10,}"""))
                 val searchQuery = if (isIsbn) "isbn:$query" else query
 
+                Log.d("ScanIsbn", "Wyszukiwanie książki po: $searchQuery")
+
                 val response = api.searchBooks(searchQuery)
+
+                Log.d("ScanIsbn", "Odpowiedź zawiera ${response.items?.size ?: 0} książek")
+
                 _searchResults.value = response.items ?: emptyList()
 
                 if (isIsbn) {
-                    response.items?.firstOrNull()?.let { item ->
-                        _selectedBook.value = mapGoogleBookToBookEntity(item)
+                    val firstItem = response.items?.firstOrNull()
+                    if (firstItem != null) {
+                        Log.d("ScanIsbn", "Ustawiam selectedBook i navigateToEdit")
+                        _selectedBook.value = mapGoogleBookToBookEntity(firstItem)
                         _navigateToEdit.value = true
                         onFound?.invoke()
+                    } else {
+                        Log.d("ScanIsbn", "Brak wyników dla ISBN, selectedBook nie ustawiony")
                     }
                 }
+
+
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("ScanIsbn", "Błąd podczas wyszukiwania książki: ${e.message}", e)
                 _searchResults.value = emptyList()
             }
         }
     }
-
-
 
     fun setSelectedBookAndNavigate(book: BookEntity) {
         _selectedBook.value = book
@@ -83,9 +90,7 @@ class SearchBooksViewModel : ViewModel() {
         _searchResults.value = emptyList()
     }
 
-
     fun clearSelectedBook() {
         _selectedBook.value = null
     }
-
 }

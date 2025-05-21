@@ -176,7 +176,6 @@ class UserHomeActivity : ComponentActivity() {
                                 navController = navController,
                                 viewModel = userBooksViewModel,
                                 searchViewModel = searchBooksViewModel,
-                                selectedBook = selectedBook
                             )
                         }
 
@@ -200,13 +199,15 @@ class UserHomeActivity : ComponentActivity() {
                                 navController = navController,
                                 source = source,
                                 input = input,
-                                onIsbnFound = { isbn -> searchBooksViewModel.searchBooks(isbn) },
                                 onBackToCaller = {
                                     navController.navigate(source) {
                                         popUpTo(source) { inclusive = true }
                                     }
-                                }
+                                },
+                                searchViewModel = searchBooksViewModel
                             )
+
+
                         }
 
                         composable("bookDetails/{bookId}") { backStackEntry ->
