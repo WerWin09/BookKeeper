@@ -28,6 +28,9 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
     private val _author = MutableStateFlow<List<String>>(emptyList())
     val author: StateFlow<List<String>> = _author
 
+    val booksCount: Int
+        get() = _books.value.size
+
     init {
         val database = BookDatabase.getDatabase(application)
         repository = BookRepository(application, database)

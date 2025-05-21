@@ -132,7 +132,8 @@ class UserHomeActivity : ComponentActivity() {
 
                         composable("settings") {
                             SettingsScreen(
-                                onLogout = { logout() }
+                                onLogout = { logout() },
+                                viewModel = userBooksViewModel
                             )
                         }
 
