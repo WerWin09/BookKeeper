@@ -70,31 +70,7 @@ fun StatusSection(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(books) { book ->
-                        Card(
-                            modifier = Modifier
-                                .size(width = 140.dp, height = 100.dp)
-                                .clickable { onBookClick(book.id) },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF59D)), // żółty
-                            elevation = CardDefaults.cardElevation(4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(8.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = book.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    maxLines = 2
-                                )
-                                Text(
-                                    text = book.author,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 1
-                                )
-                            }
-                        }
+                        BookItemCard(book = book, onClick = { onBookClick(book.id) })
                     }
                 }
             }
