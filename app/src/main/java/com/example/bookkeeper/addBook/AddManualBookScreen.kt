@@ -1,5 +1,7 @@
 package com.example.bookkeeper.userHomeInterface
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +24,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.example.bookkeeper.utils.Constants.statusOptions
 
+import androidx.compose.material.icons.filled.Photo
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.delay
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +44,16 @@ fun ManualAddBookScreen(
     onSearchOnline: () -> Unit,
     viewModel: UserBooksViewModel = viewModel()
 ) {
+    var coverPath by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        imageUri = uri
+    }
+
     var showDialog by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
@@ -39,6 +63,27 @@ fun ManualAddBookScreen(
     var rating by remember { mutableStateOf<Int?>(null) }
     var statusExpanded by remember { mutableStateOf(false) }
     var tags by remember { mutableStateOf("") }
+
+    val displayBitmap = remember(coverPath to imageUri) {
+        when {
+            imageUri != null -> {
+                try {
+                    val inputStream = context.contentResolver.openInputStream(imageUri!!)
+                    android.graphics.BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            !coverPath.isNullOrEmpty() -> {
+                try {
+                    android.graphics.BitmapFactory.decodeFile(coverPath)?.asImageBitmap()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            else -> null
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -70,6 +115,41 @@ fun ManualAddBookScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(text = "Okładka:", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (displayBitmap != null) {
+                    Image(
+                        bitmap = displayBitmap,
+                        contentDescription = "Okładka książki",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Photo,
+                        contentDescription = "Brak okładki",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Text("Dodaj okładkę")
+            }
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -174,15 +254,21 @@ fun ManualAddBookScreen(
                             description = description.trim().takeIf { it.isNotEmpty() },
                             rating = rating,
                             userId = "",
-                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                            coverUrlRemote = null,
+                            coverLocalPath = null
                         )
-                        viewModel.addBook(newBook)
+
+                        Log.d("BookKeeper_DEBUG", "Dodaję książkę z imageUri = $imageUri")
+
+                        viewModel.saveBookWithCover(newBook, imageUri = imageUri)
                         onBackToHome()
                     },
                     enabled = title.isNotBlank() && author.isNotBlank() && status.isNotBlank()
                 ) {
                     Text("Dodaj książkę")
                 }
+
             }
 
             Text(

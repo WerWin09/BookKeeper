@@ -1,6 +1,7 @@
 package com.example.bookkeeper.userHomeInterface
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookkeeper.dataRoom.BookRepository
@@ -98,6 +99,13 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
             repository.updateBook(book)
         }
     }
+
+    fun saveBookWithCover(book: BookEntity, imageUri: Uri?) {
+        viewModelScope.launch {
+            repository.saveBookWithCover(book, imageUri)
+        }
+    }
+
 
     suspend fun getBookById(bookId: Int): BookEntity? {
         return repository.getBookById(bookId)

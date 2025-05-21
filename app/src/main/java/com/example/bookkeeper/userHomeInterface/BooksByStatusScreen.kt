@@ -1,5 +1,6 @@
 package com.example.bookkeeper.userHomeInterface
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,10 +10,12 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.utils.Constants
@@ -67,57 +70,73 @@ fun BooksByStatusScreen(
             }
         },
     ) { padding ->
-        Column(
-            Modifier
-                .padding(padding)
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 2) lokalne wyszukiwanie
-            OutlinedTextField(
-                value = query,
-                onValueChange = {
-                    query = it
-                    viewModel.searchBooks(it)
-                },
-                label = { Text("Szukaj w \"$status\"") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            // 3) lista lub placeholder
-            if (books.isEmpty()) {
-                Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+            items(books) { book ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onBookClick(book.id) },
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Text("Nie masz przypisanych książek w tej kategorii \"$status\".")
-                }
-            } else {
-                LazyColumn(
-                    Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(books) { book ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onBookClick(book.id) },
-                            elevation = CardDefaults.cardElevation(2.dp)
-                        ) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text(book.title,  style = MaterialTheme.typography.titleMedium)
-                                Text(book.author, style = MaterialTheme.typography.bodyMedium)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val coverBitmap = remember(book.coverLocalPath) {
+                            try {
+                                book.coverLocalPath?.let {
+                                    android.graphics.BitmapFactory.decodeFile(it)?.asImageBitmap()
+                                }
+                            } catch (e: Exception) {
+                                null
                             }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .padding(end = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (coverBitmap != null) {
+                                Image(
+                                    bitmap = coverBitmap,
+                                    contentDescription = "Okładka",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Photo,
+                                    contentDescription = "Brak okładki",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                book.title,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                book.author,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }
             }
         }
+
 
         // 4) dialog filtrowania kategorii i autora
         CombinedFilterDialog(

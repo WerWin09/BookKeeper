@@ -1,5 +1,7 @@
 package com.example.bookkeeper.userHomeInterface
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +21,10 @@ import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Photo
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -103,36 +109,74 @@ fun BookDetailsScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Header
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Basic info section
-                Column(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    InfoRow(label = "Autor:", value = book.author)
-                    InfoRow(label = "Status:", value = book.status)
-
-                    book.category?.let {
-                        InfoRow(label = "Kategoria:", value = it)
+                    // Okładka po lewej
+                    val coverBitmap = remember(book.coverLocalPath) {
+                        try {
+                            book.coverLocalPath?.let {
+                                BitmapFactory.decodeFile(it)?.asImageBitmap()
+                            }
+                        } catch (e: Exception) {
+                            null
+                        }
                     }
 
-                    book.rating?.let {
-                        InfoRow(
-                            label = "Ocena:",
-                            value = "★".repeat(it) + "☆".repeat(5 - it)
+                    if (coverBitmap != null) {
+                        Image(
+                            bitmap = coverBitmap,
+                            contentDescription = "Okładka",
+                            modifier = Modifier
+                                .size(120.dp)
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                                .padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Photo,
+                                contentDescription = "Brak okładki",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+
+                    // Dane tekstowe po prawej
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = book.title,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        InfoRow(label = "Autor:", value = book.author)
+                        InfoRow(label = "Status:", value = book.status)
+
+                        book.category?.let {
+                            InfoRow(label = "Kategoria:", value = it)
+                        }
+
+                        book.rating?.let {
+                            InfoRow(
+                                label = "Ocena:",
+                                value = "★".repeat(it) + "☆".repeat(5 - it)
+                            )
+                        }
                     }
                 }
+
+
 
                 Spacer(modifier = Modifier.height(24.dp))
 
