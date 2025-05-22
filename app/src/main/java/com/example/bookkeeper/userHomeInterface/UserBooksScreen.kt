@@ -122,7 +122,9 @@ fun UserBooksScreen(
 
                 // 3) Sekcje wg statusów
                 statuses.forEach { status ->
-                    val booksForStatus = allBooks.filter { it.status == status }
+                    val booksForStatus = allBooks
+                        .filter { it.status == status }
+                        .sortedBy { it.title.lowercase() }
                     item {
                         StatusSection(
                             status         = status,

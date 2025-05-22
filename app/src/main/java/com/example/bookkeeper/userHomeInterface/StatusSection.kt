@@ -69,8 +69,8 @@ fun StatusSection(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(books) { book ->
-                        BookItemCard(book = book, onClick = { onBookClick(book.id) })
+                    items(books.sortedBy { it.title.lowercase() }) { book ->
+                    BookItemCard(book = book, onClick = { onBookClick(book.id) })
                     }
                 }
             }

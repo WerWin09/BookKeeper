@@ -25,7 +25,7 @@ fun AllBooksScreen(
         )
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(books) { book ->
+            items(books.sortedBy { it.title.lowercase() }) { book ->
                 BookListItem(book = book, onClick = { onBookClick(book.id) })
             }
         }
