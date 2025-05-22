@@ -39,39 +39,56 @@ class SearchBooksViewModel : ViewModel() {
         .build()
         .create(GoogleBooksApi::class.java)
 
-    fun searchBooks(query: String, onFound: (() -> Unit)? = null) {
+    fun searchBooks(
+        query: String,
+        onFound: (() -> Unit)? = null
+    ) {
         viewModelScope.launch {
             try {
-                val isIsbn = query.matches(Regex("""97[89][\d\- ]{10,}"""))
-                val searchQuery = if (isIsbn) "isbn:$query" else query
+                // Jeśli to jest czysty ISBN — traktuj jako ISBN
+                val isIsbnOnly = query.matches(Regex("""^\d{10,13}$"""))
 
-                Log.d("ScanIsbn", "Wyszukiwanie książki po: $searchQuery")
+                val searchQuery = if (isIsbnOnly) {
+                    "isbn:$query"
+                } else {
+                    // Wyszukiwanie zaawansowane: rozbij na pola
+                    val parts = mutableListOf<String>()
+
+                    if (titleQuery.value.isNotBlank())    parts += "intitle:${titleQuery.value}"
+                    if (authorQuery.value.isNotBlank())   parts += "inauthor:${authorQuery.value}"
+                    if (categoryQuery.value.isNotBlank()) parts += "subject:${categoryQuery.value}"
+                    if (publisherQuery.value.isNotBlank())parts += "inpublisher:${publisherQuery.value}"
+
+                    parts.joinToString(" ")
+                }
+
+                Log.d("SearchBooksVM", "Wyszukiwanie książki po: $searchQuery")
 
                 val response = api.searchBooks(searchQuery)
 
-                Log.d("ScanIsbn", "Odpowiedź zawiera ${response.items?.size ?: 0} książek")
+                Log.d("SearchBooksVM", "Odpowiedź zawiera ${response.items?.size ?: 0} książek")
 
                 _searchResults.value = response.items ?: emptyList()
 
-                if (isIsbn) {
+                if (isIsbnOnly) {
                     val firstItem = response.items?.firstOrNull()
                     if (firstItem != null) {
-                        Log.d("ScanIsbn", "Ustawiam selectedBook i navigateToEdit")
+                        Log.d("SearchBooksVM", "Ustawiam selectedBook i navigateToEdit")
                         _selectedBook.value = mapGoogleBookToBookEntity(firstItem)
                         _navigateToEdit.value = true
                         onFound?.invoke()
                     } else {
-                        Log.d("ScanIsbn", "Brak wyników dla ISBN, selectedBook nie ustawiony")
+                        Log.d("SearchBooksVM", "Brak wyników dla ISBN, selectedBook nie ustawiony")
                     }
                 }
 
-
             } catch (e: Exception) {
-                Log.e("ScanIsbn", "Błąd podczas wyszukiwania książki: ${e.message}", e)
+                Log.e("SearchBooksVM", "Błąd podczas wyszukiwania książki: ${e.message}", e)
                 _searchResults.value = emptyList()
             }
         }
     }
+
 
     fun setSelectedBookAndNavigate(book: BookEntity) {
         _selectedBook.value = book
