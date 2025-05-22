@@ -10,6 +10,13 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.example.bookkeeper.dataRoom.BookEntity
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.asImageBitmap
+
 @Composable
 fun AllBooksScreen(
     viewModel: UserBooksViewModel,
@@ -24,9 +31,68 @@ fun AllBooksScreen(
             modifier = Modifier.padding(16.dp)
         )
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             items(books.sortedBy { it.title.lowercase() }) { book ->
-                BookListItem(book = book, onClick = { onBookClick(book.id) })
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onBookClick(book.id) },
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val coverBitmap = remember(book.coverLocalPath) {
+                            try {
+                                book.coverLocalPath?.let {
+                                    android.graphics.BitmapFactory.decodeFile(it)?.asImageBitmap()
+                                }
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .padding(end = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (coverBitmap != null) {
+                                Image(
+                                    bitmap = coverBitmap,
+                                    contentDescription = "Okładka",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Photo,
+                                    contentDescription = "Brak okładki",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                book.title,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                book.author,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
             }
         }
     }
