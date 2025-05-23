@@ -36,7 +36,8 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import android.os.Build
-
+import androidx.compose.ui.graphics.Color
+import com.example.bookkeeper.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,12 +169,14 @@ fun ScanIsbnScreen(
 
     // UI
     Scaffold(
+        containerColor = BackgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Zeskanuj ISBN") },
+                title = { Text("Zeskanuj ISBN", color = Color.Black) },
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
                 navigationIcon = {
                     IconButton(onClick = onBackToCaller) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Cofnij")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Cofnij", tint = Color.Black)
                     }
                 }
             )
@@ -186,7 +189,11 @@ fun ScanIsbnScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Zrób zdjęcie lub wybierz z galerii, aby zeskanować ISBN")
+            Text(
+                text = "Zrób zdjęcie lub wybierz z galerii, aby zeskanować ISBN",
+                color = Color.White
+            )
+
 
             bitmap?.let {
                 Image(bitmap = it.asImageBitmap(), contentDescription = "Wybrane zdjęcie")
