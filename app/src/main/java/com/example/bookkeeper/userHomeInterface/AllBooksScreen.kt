@@ -35,7 +35,6 @@ fun AllBooksScreen(
     onBack: () -> Unit
 ) {
     val books by viewModel.books.collectAsState()
-    var showFilterDialog by remember { mutableStateOf(false) }
 
 
     Scaffold(
