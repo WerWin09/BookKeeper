@@ -34,6 +34,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import com.example.bookkeeper.ui.theme.BackgroundColor
+import com.example.bookkeeper.ui.theme.MainColor
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -282,25 +287,58 @@ fun ManualAddBookScreen(
     }
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Wybierz źródło zdjęcia") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDialog = false
-                    navController.navigate("scanIsbn?source=manualAddBook&input=camera")
-                }) {
-                    Text("Aparat")
+        Dialog(onDismissRequest = { showDialog = false }) {
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = BackgroundColor,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Wybierz źródło zdjęcia",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = {
+                                showDialog = false
+                                navController.navigate("scanIsbn?source=manualAddBook&input=camera")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MainColor,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text("Aparat")
+                        }
+
+                        Button(
+                            onClick = {
+                                showDialog = false
+                                navController.navigate("scanIsbn?source=manualAddBook&input=gallery")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MainColor,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text("Galeria")
+                        }
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDialog = false
-                    navController.navigate("scanIsbn?source=manualAddBook&input=gallery")
-                }) {
-                    Text("Galeria")
-                }
+
             }
-        )
+        }
     }
 }
