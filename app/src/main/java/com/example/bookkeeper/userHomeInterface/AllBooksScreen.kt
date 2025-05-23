@@ -135,7 +135,7 @@ fun AllBooksScreen(
 
                                 Column {
                                     Text(book.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
-                                    Text(book.author, style = MaterialTheme.typography.bodyMedium, color = Color.LightGray)
+                                    Text(book.author, style = MaterialTheme.typography.bodyMedium, color = Color.White)
                                 }
                             }
                         }

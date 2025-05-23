@@ -25,7 +25,10 @@ fun StatusSection(
     status: String,
     books: List<BookEntity>,
     onSectionClick: () -> Unit,
-    onBookClick: (Int) -> Unit
+    onBookClick: (Int) -> Unit,
+    textColor: Color = Color.White,
+    authorColor: Color = Color.White
+
 ) {
     Box(
         modifier = Modifier
@@ -60,7 +63,7 @@ fun StatusSection(
                     Text(
                         text = "Nie posiadasz żadnej przypisanej książki w tej kategorii",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray
+                        color = Color.White
                     )
                 }
             } else {

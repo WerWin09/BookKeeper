@@ -38,7 +38,7 @@ fun SettingsScreen(
         Text(
             text = "Liczba książek w bibliotece: ${viewModel.booksCount}",
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.LightGray,
+            color = Color.White,
             modifier = Modifier
                 .padding(15.dp)
         )

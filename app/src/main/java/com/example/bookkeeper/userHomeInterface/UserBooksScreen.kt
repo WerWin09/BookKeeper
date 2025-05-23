@@ -1,5 +1,6 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.R.attr.textColor
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,7 +50,6 @@ fun UserBooksScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Twoje książki", color = Color.Black) },
-                modifier = Modifier,
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
                 actions = {
@@ -57,11 +57,7 @@ fun UserBooksScreen(
                         Icon(Icons.Default.FilterAlt, contentDescription = "Filtruj", tint = Color.Black)
                     }
                 }
-
-
             )
-            val insets = WindowInsets.systemBars.asPaddingValues()
-            Log.d("INSETS_DEBUG", "Top: ${insets.calculateTopPadding()}, Bottom: ${insets.calculateBottomPadding()}")
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -72,14 +68,12 @@ fun UserBooksScreen(
                 Icon(Icons.Default.Add, contentDescription = "Dodaj książkę")
             }
         }
-
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Tło w środku Scaffolda
             Image(
                 painter = painterResource(R.drawable.background),
                 contentDescription = null,
@@ -98,8 +92,12 @@ fun UserBooksScreen(
                             query = it
                             viewModel.searchBooks(it)
                         },
-                        placeholder = { Text("Wyszukaj książki") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        placeholder = {
+                            Text("Wyszukaj książki", color = Color.White)
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = null, tint = Color.White)
+                        },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -107,11 +105,13 @@ fun UserBooksScreen(
                             .background(color = SecondBackgroundColor, shape = RoundedCornerShape(8.dp)),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = SecondBackgroundColor,
-                            unfocusedBorderColor = SecondBackgroundColor
+                            unfocusedBorderColor = SecondBackgroundColor,
+                            cursorColor = Color.White,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
                         )
                     )
                 }
-
 
                 item {
                     if (selectedCategory != null || selectedAuthor != null) {
@@ -127,7 +127,7 @@ fun UserBooksScreen(
                                 selectedAuthor = null
                                 viewModel.resetFilters()
                             }) {
-                                Text("Wyczyść filtry")
+                                Text("Wyczyść filtry", color = Color.White)
                             }
                         }
                     }
@@ -143,10 +143,13 @@ fun UserBooksScreen(
                             status = status,
                             books = booksForStatus,
                             onSectionClick = { onStatusClick(status) },
-                            onBookClick = onBookClick
+                            onBookClick = onBookClick,
+                            textColor = Color.White,
+                            authorColor = Color.White
                         )
                     }
                 }
+
             }
 
             CombinedFilterDialog(
@@ -165,26 +168,9 @@ fun UserBooksScreen(
                 },
                 onDismiss = { showFilterDialog = false }
             )
-
-            CombinedFilterDialog(
-                showDialog = showFilterDialog,
-                categories = viewModel.categories.collectAsState().value,
-                authors = viewModel.author.collectAsState().value,
-                selectedCategory = null, // lub pamiętaj wybrane, jeśli chcesz
-                selectedAuthor = null,
-                onCategorySelected = {
-                    viewModel.filterByCategory(it)
-                    showFilterDialog = false
-                },
-                onAuthorSelected = {
-                    viewModel.filterByAuthor(it)
-                    showFilterDialog = false
-                },
-                onDismiss = { showFilterDialog = false }
-            )
-
         }
     }
 }
+
 
 

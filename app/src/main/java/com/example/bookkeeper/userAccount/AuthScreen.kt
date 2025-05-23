@@ -64,7 +64,7 @@ fun AuthScreen(
             Text(
                 text = if (isLogin) "Logowanie" else "Rejestracja",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Color.LightGray
+                color = Color.White
             )
 
             Spacer(Modifier.height(16.dp))
@@ -72,10 +72,10 @@ fun AuthScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email", color = Color.LightGray,
+                label = { Text("Email", color = Color.White,
                                             fontSize = 18.sp) },
                 placeholder = { Text("wpisz email", color = Color.Gray) },
-                textStyle = TextStyle(color = Color.LightGray,
+                textStyle = TextStyle(color = Color.White,
                                     fontSize = 18.sp),
                 singleLine = true,
                 modifier = Modifier
@@ -92,10 +92,10 @@ fun AuthScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Hasło", color = Color.LightGray,
+                label = { Text("Hasło", color = Color.White,
                                             fontSize = 18.sp) },
                 placeholder = { Text("wpisz hasło", color = Color.Gray) },
-                textStyle = TextStyle(color = Color.LightGray,
+                textStyle = TextStyle(color = Color.White,
                                         fontSize = 18.sp),
                 singleLine = true,
                 modifier = Modifier
@@ -133,9 +133,9 @@ fun AuthScreen(
 
             when (authState) {
                 is AuthViewModel.AuthResult.Loading ->
-                    CircularProgressIndicator(color = Color.LightGray)
+                    CircularProgressIndicator(color = Color.White)
                 is AuthViewModel.AuthResult.Success -> {
-                    Text("Sukces!", color = Color.LightGray)
+                    Text("Sukces!", color = Color.White)
                     LaunchedEffect(Unit) { onAuthSuccess() }
                 }
                 is AuthViewModel.AuthResult.Error -> {

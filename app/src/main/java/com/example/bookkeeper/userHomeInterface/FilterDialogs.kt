@@ -44,7 +44,7 @@ fun CombinedFilterDialog(
                 Text(
                     "Filtruj książki",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.LightGray
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -83,7 +83,7 @@ fun CombinedFilterDialog(
                 // Przycisk Zamknij
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onDismiss) {
-                        Text("Zamknij", color = Color.LightGray)
+                        Text("Zamknij", color = Color.White)
                     }
                 }
             }
@@ -114,7 +114,7 @@ private fun FilterRow(
         Spacer(Modifier.width(8.dp))
         Text(
             label,
-            color = Color.LightGray,
+            color = Color.White,
             style = MaterialTheme.typography.bodyMedium
         )
     }
