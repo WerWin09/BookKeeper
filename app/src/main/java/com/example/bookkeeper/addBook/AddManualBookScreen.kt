@@ -31,15 +31,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.delay
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
-import com.example.bookkeeper.ui.theme.BackgroundColor
-import com.example.bookkeeper.ui.theme.MainColor
-
+import androidx.compose.ui.res.painterResource
+import com.example.bookkeeper.R
+import androidx.compose.ui.layout.ContentScale
+import com.example.bookkeeper.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +54,7 @@ fun ManualAddBookScreen(
     var coverPath by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val roundedShape = RoundedCornerShape(8.dp)
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -91,198 +94,310 @@ fun ManualAddBookScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Dodaj książkę ręcznie") },
+                title = { Text("Dodaj książkę ręcznie", color = Color.Black) },
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
                 navigationIcon = {
                     IconButton(onClick = onBackToHome) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Wróć",
+                            tint = Color.Black
+                        )
                     }
                 }
             )
         },
         floatingActionButton = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                FloatingActionButton(onClick = onSearchOnline) {
+                FloatingActionButton(
+                    onClick = onSearchOnline,
+                    containerColor = MainColor,
+                    contentColor = Color.Black
+                ) {
                     Icon(Icons.Default.Search, contentDescription = "Szukaj przez Google Books")
                 }
-                FloatingActionButton(onClick = { showDialog = true }) {
+                FloatingActionButton(
+                    onClick = { showDialog = true },
+                    containerColor = MainColor,
+                    contentColor = Color.Black
+                ) {
                     Icon(Icons.Default.AddAPhoto, contentDescription = "Skanuj ISBN")
                 }
             }
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding)
+                .background(BackgroundColor)
         ) {
-            Text(text = "Okładka:", style = MaterialTheme.typography.titleMedium)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(150.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
-                    .padding(4.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (displayBitmap != null) {
-                    Image(
-                        bitmap = displayBitmap,
-                        contentDescription = "Okładka książki",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Photo,
-                        contentDescription = "Brak okładki",
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
-            }
-
-            Button(
-                onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Text("Dodaj okładkę")
-            }
-
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Tytuł *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = tags,
-                onValueChange = { tags = it },
-                label = { Text("Tagi (oddziel przecinkami)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = author,
-                onValueChange = { author = it },
-                label = { Text("Autor *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = statusExpanded,
-                onExpandedChange = { statusExpanded = !statusExpanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = status,
-                    onValueChange = {},
-                    label = { Text("Status *") },
-                    readOnly = true,
-                    modifier = Modifier.menuAnchor(),
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
-                    }
+                Text(
+                    text = "Okładka:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
-                ExposedDropdownMenu(
-                    expanded = statusExpanded,
-                    onDismissRequest = { statusExpanded = false }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    statusOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                status = option
-                                statusExpanded = false
-                            }
+                    if (displayBitmap != null) {
+                        Image(
+                            bitmap = displayBitmap,
+                            contentDescription = "Okładka książki",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Photo,
+                            contentDescription = "Brak okładki",
+                            modifier = Modifier.size(48.dp),
+                            tint = Color.White
                         )
                     }
                 }
-            }
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Kategoria") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Opis") },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 3
-            )
-
-            OutlinedTextField(
-                value = rating?.toString() ?: "",
-                onValueChange = {
-                    rating = it.toIntOrNull()?.takeIf { it in 0..5 }
-                },
-                label = { Text("Ocena (0-5)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(
-                    onClick = onBackToHome,
-                    modifier = Modifier.padding(end = 8.dp)
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Anuluj")
-                }
-
-                Button(
-                    onClick = {
-                        val newBook = BookEntity(
-                            title = title.trim(),
-                            author = author.trim(),
-                            status = status.trim(),
-                            category = category.trim().takeIf { it.isNotEmpty() },
-                            description = description.trim().takeIf { it.isNotEmpty() },
-                            rating = rating,
-                            userId = "",
-                            tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                            coverUrlRemote = null,
-                            coverLocalPath = null
-
+                    OutlinedButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = BackgroundColor,
+                            contentColor = MainColor
                         )
-
-                        Log.d("BookKeeper_DEBUG", "Dodaję książkę z imageUri = $imageUri")
-
-                        viewModel.saveBookWithCover(newBook, imageUri = imageUri)
-                        onBackToHome()
-                    },
-                    enabled = title.isNotBlank() && author.isNotBlank() && status.isNotBlank()
-                ) {
-                    Text("Dodaj książkę")
+                    ) {
+                        Text("Dodaj okładkę")
+                    }
                 }
 
-            }
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Tytuł *", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
 
-            Text(
-                text = "* Wymagane pola",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+                OutlinedTextField(
+                    value = tags,
+                    onValueChange = { tags = it },
+                    label = { Text("Tagi (oddziel przecinkami)", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
+
+                OutlinedTextField(
+                    value = author,
+                    onValueChange = { author = it },
+                    label = { Text("Autor *", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
+
+                ExposedDropdownMenuBox(
+                    expanded = statusExpanded,
+                    onExpandedChange = { statusExpanded = !statusExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = status,
+                        onValueChange = {},
+                        label = { Text("Status *", color = Color.White) },
+                        readOnly = true,
+                        shape = roundedShape,
+                        modifier = Modifier.menuAnchor(),
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = SecondBackgroundColor,
+                            unfocusedBorderColor = SecondBackgroundColor,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White,
+                            containerColor = SecondBackgroundColor
+                        )
+                    )
+                    ExposedDropdownMenu(
+                        expanded = statusExpanded,
+                        onDismissRequest = { statusExpanded = false },
+                        modifier = Modifier.background(SecondBackgroundColor)
+                    ) {
+                        statusOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option, color = Color.White) },
+                                onClick = {
+                                    status = option
+                                    statusExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = { Text("Kategoria", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Opis", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
+
+                OutlinedTextField(
+                    value = rating?.toString() ?: "",
+                    onValueChange = {
+                        rating = it.toIntOrNull()?.takeIf { it in 0..5 }
+                    },
+                    label = { Text("Ocena (0-5)", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    shape = roundedShape,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = onBackToHome,
+                        modifier = Modifier.padding(end = 8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = MainColor
+                        )
+                    ) {
+                        Text("Anuluj")
+                    }
+
+                    Button(
+                        onClick = {
+                            val newBook = BookEntity(
+                                title = title.trim(),
+                                author = author.trim(),
+                                status = status.trim(),
+                                category = category.trim().takeIf { it.isNotEmpty() },
+                                description = description.trim().takeIf { it.isNotEmpty() },
+                                rating = rating,
+                                userId = "",
+                                tags = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                                coverUrlRemote = null,
+                                coverLocalPath = null
+                            )
+
+                            Log.d("BookKeeper_DEBUG", "Dodaję książkę z imageUri = $imageUri")
+
+                            viewModel.saveBookWithCover(newBook, imageUri = imageUri)
+                            onBackToHome()
+                        },
+                        enabled = title.isNotBlank() && author.isNotBlank() && status.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MainColor,
+                            contentColor = Color.Black,
+                            disabledContainerColor = MainColor.copy(alpha = 0.5f),
+                            disabledContentColor = Color.Black.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Text("Dodaj książkę")
+                    }
+                }
+
+                Text(
+                    text = "* Wymagane pola",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 
@@ -337,8 +452,7 @@ fun ManualAddBookScreen(
                         }
                     }
                 }
-
             }
-        }
+        )
     }
 }
