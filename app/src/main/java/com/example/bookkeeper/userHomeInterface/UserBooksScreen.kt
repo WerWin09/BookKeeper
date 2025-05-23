@@ -1,9 +1,11 @@
 package com.example.bookkeeper.userHomeInterface
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterAlt
@@ -22,6 +24,7 @@ import com.example.bookkeeper.ui.theme.BackgroundColor
 import com.example.bookkeeper.ui.theme.MainColor
 import com.example.bookkeeper.utils.Constants
 import androidx.compose.material.icons.filled.Logout
+import com.example.bookkeeper.ui.theme.SecondBackgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,55 +35,61 @@ fun UserBooksScreen(
     onStatusClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val allBooks    by viewModel.books.collectAsStateWithLifecycle()
-    val statuses    = Constants.statusOptions
-    val categories  by viewModel.categories.collectAsStateWithLifecycle()
+    val allBooks by viewModel.books.collectAsStateWithLifecycle()
+    val statuses = Constants.statusOptions
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
     val authors by viewModel.author.collectAsStateWithLifecycle()
     var showFilterDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedAuthor by remember { mutableStateOf<String?>(null) }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        // 1) pełnoekranowy obrazek w tle
-        Image(
-            painter = painterResource(R.drawable.background),
-            contentDescription = "Background Image",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Twoje książki", color = Color.Black )},
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = MainColor
-                    ),
-                    actions = {
-                        // Istniejący przycisk filtrowania
-                        IconButton(onClick = { showFilterDialog = true }) {
-                            Icon(
-                                Icons.Default.FilterAlt,
-                                contentDescription = "Filtruj",
-                                tint = Color.Black
-                            )
-                        }
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text("Twoje książki", color = Color.Black) },
+                modifier = Modifier,
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
+                actions = {
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(Icons.Default.FilterAlt, contentDescription = "Filtruj", tint = Color.Black)
                     }
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = onAddBook) {
-                    Icon(Icons.Default.Add, contentDescription = "Dodaj książkę")
                 }
-            }
-        ) { padding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
+
+
+            )
+            val insets = WindowInsets.systemBars.asPaddingValues()
+            Log.d("INSETS_DEBUG", "Top: ${insets.calculateTopPadding()}, Bottom: ${insets.calculateBottomPadding()}")
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddBook,
+                containerColor = MainColor,
+                contentColor = Color.Black
             ) {
-                // 1) Wyszukiwarka
+                Icon(Icons.Default.Add, contentDescription = "Dodaj książkę")
+            }
+        }
+
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Tło w środku Scaffolda
+            Image(
+                painter = painterResource(R.drawable.background),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
                 item {
                     var query by remember { mutableStateOf("") }
                     OutlinedTextField(
@@ -89,17 +98,21 @@ fun UserBooksScreen(
                             query = it
                             viewModel.searchBooks(it)
                         },
-
-                        label = { Text("Wyszukaj książki") },
+                        placeholder = { Text("Wyszukaj książki") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(15.dp)
-                            .background(BackgroundColor)
+                            .background(color = SecondBackgroundColor, shape = RoundedCornerShape(8.dp)),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = SecondBackgroundColor,
+                            unfocusedBorderColor = SecondBackgroundColor
+                        )
                     )
                 }
 
-                // 2) Przycisk "Wyczyść filtry", tylko gdy są aktywne
+
                 item {
                     if (selectedCategory != null || selectedAuthor != null) {
                         Row(
@@ -120,36 +133,52 @@ fun UserBooksScreen(
                     }
                 }
 
-                // 3) Sekcje wg statusów
                 statuses.forEach { status ->
                     val booksForStatus = allBooks
                         .filter { it.status == status }
                         .sortedBy { it.title.lowercase() }
+
                     item {
                         StatusSection(
-                            status         = status,
-                            books          = booksForStatus,
+                            status = status,
+                            books = booksForStatus,
                             onSectionClick = { onStatusClick(status) },
-                            onBookClick    = onBookClick
+                            onBookClick = onBookClick
                         )
                     }
                 }
             }
 
-            // 4) Dialog – tylko kategorie i tagi
             CombinedFilterDialog(
-                showDialog         = showFilterDialog,
-                categories         = categories,
-                authors            = authors,
-                selectedCategory   = selectedCategory,
-                selectedAuthor     = selectedAuthor,
-                onCategorySelected = { cat ->
-                    selectedCategory = cat
-                    viewModel.filterByCategory(cat)
+                showDialog = showFilterDialog,
+                categories = categories,
+                authors = authors,
+                selectedCategory = selectedCategory,
+                selectedAuthor = selectedAuthor,
+                onCategorySelected = {
+                    selectedCategory = it
+                    viewModel.filterByCategory(it)
                 },
-                onAuthorSelected = { author ->
-                    selectedAuthor = author
-                    viewModel.filterByAuthor(author)
+                onAuthorSelected = {
+                    selectedAuthor = it
+                    viewModel.filterByAuthor(it)
+                },
+                onDismiss = { showFilterDialog = false }
+            )
+
+            CombinedFilterDialog(
+                showDialog = showFilterDialog,
+                categories = viewModel.categories.collectAsState().value,
+                authors = viewModel.author.collectAsState().value,
+                selectedCategory = null, // lub pamiętaj wybrane, jeśli chcesz
+                selectedAuthor = null,
+                onCategorySelected = {
+                    viewModel.filterByCategory(it)
+                    showFilterDialog = false
+                },
+                onAuthorSelected = {
+                    viewModel.filterByAuthor(it)
+                    showFilterDialog = false
                 },
                 onDismiss = { showFilterDialog = false }
             )
@@ -157,3 +186,5 @@ fun UserBooksScreen(
         }
     }
 }
+
+

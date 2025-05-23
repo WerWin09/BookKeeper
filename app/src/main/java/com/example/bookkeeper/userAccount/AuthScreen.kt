@@ -48,18 +48,7 @@ fun AuthScreen(
             contentScale = ContentScale.Crop
         )
 
-        // 2) nakładka gradientowa dla lepszej czytelności
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent),
-                        startY = 0f,
-                        endY = 1000f
-                    )
-                )
-        )
+
 
         // 3) panel logowania/rejestracji na dole
         Column(
@@ -75,7 +64,7 @@ fun AuthScreen(
             Text(
                 text = if (isLogin) "Logowanie" else "Rejestracja",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Color.White
+                color = Color.LightGray
             )
 
             Spacer(Modifier.height(16.dp))
@@ -86,12 +75,16 @@ fun AuthScreen(
                 label = { Text("Email", color = Color.LightGray,
                                             fontSize = 18.sp) },
                 placeholder = { Text("wpisz email", color = Color.Gray) },
-                textStyle = TextStyle(color = Color.White,
+                textStyle = TextStyle(color = Color.LightGray,
                                     fontSize = 18.sp),
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                    .background(color = SecondBackgroundColor, shape = RoundedCornerShape(8.dp)),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = SecondBackgroundColor,
+                    unfocusedBorderColor = SecondBackgroundColor
+                )
             )
 
             Spacer(Modifier.height(8.dp))
@@ -102,12 +95,16 @@ fun AuthScreen(
                 label = { Text("Hasło", color = Color.LightGray,
                                             fontSize = 18.sp) },
                 placeholder = { Text("wpisz hasło", color = Color.Gray) },
-                textStyle = TextStyle(color = Color.White,
+                textStyle = TextStyle(color = Color.LightGray,
                                         fontSize = 18.sp),
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                    .background(color = SecondBackgroundColor, shape = RoundedCornerShape(8.dp)),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = SecondBackgroundColor,
+                    unfocusedBorderColor = SecondBackgroundColor
+                )
             )
 
             Spacer(Modifier.height(16.dp))
@@ -118,7 +115,11 @@ fun AuthScreen(
                     else viewModel.register(email, password)
                 },
                 enabled = authState != AuthViewModel.AuthResult.Loading,
-                colors = ButtonDefaults.buttonColors(containerColor = MainColor),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MainColor,
+                    contentColor = Color.Black,
+                    disabledContainerColor = MainColor.copy(alpha = 0.3f)
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -127,13 +128,14 @@ fun AuthScreen(
                 )
             }
 
+
             Spacer(Modifier.height(16.dp))
 
             when (authState) {
                 is AuthViewModel.AuthResult.Loading ->
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = Color.LightGray)
                 is AuthViewModel.AuthResult.Success -> {
-                    Text("Sukces!", color = Color.White)
+                    Text("Sukces!", color = Color.LightGray)
                     LaunchedEffect(Unit) { onAuthSuccess() }
                 }
                 is AuthViewModel.AuthResult.Error -> {

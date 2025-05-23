@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,6 +25,11 @@ import com.example.bookkeeper.addBook.addBookGoogleApi.*
 import com.example.bookkeeper.ui.theme.BookKeeperTheme
 import com.example.bookkeeper.utils.UserBooksViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.ui.graphics.Color
+import com.example.bookkeeper.ui.theme.IconBottomMenu
+import com.example.bookkeeper.ui.theme.IconBottomMenuFocus
+import com.example.bookkeeper.ui.theme.ThirdBackgroundColor
+import com.example.bookkeeper.ui.theme.ThirdBackgroundColorFocus
 
 class UserHomeActivity : ComponentActivity() {
     private lateinit var userBooksViewModel: UserBooksViewModel
@@ -36,6 +40,7 @@ class UserHomeActivity : ComponentActivity() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,56 +61,85 @@ class UserHomeActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                // Lista głównych tras gdzie pokazujemy BottomNav
-                val bottomNavRoutes = listOf("userBooks", "allBooks", "settings")
+                val showBottomBar = currentRoute?.startsWith("userBooks") == true ||
+                        currentRoute?.startsWith("booksByStatus") == true ||
+                        currentRoute == "allBooks" ||
+                        currentRoute == "settings"
 
                 Scaffold(
+                    containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
-                        if (currentRoute in bottomNavRoutes) {
-                            NavigationBar {
+                        if (showBottomBar) {
+                            NavigationBar(
+                                containerColor = ThirdBackgroundColor, // Tło całego paska
+                                contentColor = IconBottomMenu // domyślny kolor tekstu/ikon
+                            ) {
                                 NavigationBarItem(
-                                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                                    icon = {
+                                        Icon(
+                                            Icons.Default.Home,
+                                            contentDescription = "Home"
+                                        )
+                                    },
                                     label = { Text("Główna") },
-                                    selected = currentRoute == "userBooks",
+                                    selected = currentRoute?.startsWith("userBooks") == true,
                                     onClick = {
                                         navController.navigate("userBooks") {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
-                                    }
+                                    },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        indicatorColor = ThirdBackgroundColorFocus, // tło pod ikoną po zaznaczeniu (np. niebieskie)
+                                        selectedIconColor = IconBottomMenuFocus,    // kolor ikony po zaznaczeniu
+                                        selectedTextColor = Color.LightGray,    // kolor tekstu po zaznaczeniu
+                                        unselectedIconColor = IconBottomMenu,   // kolor ikony bez zaznaczenia
+                                        unselectedTextColor = Color.LightGray // kolor tekstu bez zaznaczenia
+                                    )
                                 )
+
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.Book, contentDescription = "Books") },
                                     label = { Text("Wszystkie") },
                                     selected = currentRoute == "allBooks",
                                     onClick = {
                                         navController.navigate("allBooks") {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
-                                    }
+                                    },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        indicatorColor = ThirdBackgroundColorFocus, // tło pod ikoną po zaznaczeniu (np. niebieskie)
+                                        selectedIconColor = IconBottomMenuFocus,    // kolor ikony po zaznaczeniu
+                                        selectedTextColor = Color.LightGray,    // kolor tekstu po zaznaczeniu
+                                        unselectedIconColor = IconBottomMenu,   // kolor ikony bez zaznaczenia
+                                        unselectedTextColor = Color.LightGray // kolor tekstu bez zaznaczenia
+                                    )
                                 )
+
                                 NavigationBarItem(
                                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
                                     label = { Text("Ustawienia") },
                                     selected = currentRoute == "settings",
                                     onClick = {
                                         navController.navigate("settings") {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
-                                    }
+                                    },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        indicatorColor = ThirdBackgroundColorFocus, // tło pod ikoną po zaznaczeniu (np. niebieskie)
+                                        selectedIconColor = IconBottomMenuFocus,    // kolor ikony po zaznaczeniu
+                                        selectedTextColor = Color.LightGray,    // kolor tekstu po zaznaczeniu
+                                        unselectedIconColor = IconBottomMenu,   // kolor ikony bez zaznaczenia
+                                        unselectedTextColor = Color.LightGray // kolor tekstu bez zaznaczenia
+                                    )
                                 )
                             }
+
                         }
                     }
                 ) { innerPadding ->
@@ -123,115 +157,116 @@ class UserHomeActivity : ComponentActivity() {
                             )
                         }
 
-                        composable("allBooks") {
-                            AllBooksScreen(
-                                viewModel = userBooksViewModel,
-                                onBookClick = { id -> navController.navigate("bookDetails/$id") }
-                            )
-                        }
+                            composable("allBooks") {
+                                AllBooksScreen(
+                                    viewModel = userBooksViewModel,
+                                    onBookClick = { id -> navController.navigate("bookDetails/$id") },
+                                    onAddBook = { navController.navigate("manualAddBook") },
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
 
-                        composable("settings") {
-                            SettingsScreen(
-                                onLogout = { logout() },
-                                viewModel = userBooksViewModel
-                            )
-                        }
+                            composable("settings") {
+                                SettingsScreen(
+                                    onLogout = { logout() },
+                                    viewModel = userBooksViewModel
+                                )
+                            }
 
-                        composable(
-                            route = "booksByStatus/{status}",
-                            arguments = listOf(navArgument("status") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            val status = backStackEntry.arguments?.getString("status") ?: ""
-                            BooksByStatusScreen(
-                                status = status,
-                                viewModel = userBooksViewModel,
-                                onAddBook = { navController.navigate("manualAddBook") },
-                                onBookClick = { id -> navController.navigate("bookDetails/$id") },
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
+                            composable(
+                                route = "booksByStatus/{status}",
+                                arguments = listOf(navArgument("status") { type = NavType.StringType })
+                            ) { backStackEntry ->
+                                val status = backStackEntry.arguments?.getString("status") ?: ""
+                                BooksByStatusScreen(
+                                    status = status,
+                                    viewModel = userBooksViewModel,
+                                    onAddBook = { navController.navigate("manualAddBook") },
+                                    onBookClick = { id -> navController.navigate("bookDetails/$id") },
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
 
-                        composable("manualAddBook") {
-                            ManualAddBookScreen(
-                                navController = navController,
-                                onBackToHome = {
-                                    navController.navigate("userBooks") {
-                                        popUpTo("userBooks") { inclusive = true }
+                            composable("manualAddBook") {
+                                ManualAddBookScreen(
+                                    navController = navController,
+                                    onBackToHome = {
+                                        navController.navigate("userBooks") {
+                                            popUpTo("userBooks") { inclusive = true }
+                                        }
+                                    },
+                                    onSearchOnline = { navController.navigate("searchBooks") },
+                                    viewModel = userBooksViewModel
+                                )
+                            }
+
+                            composable("searchBooks") {
+                                SearchBooksScreen(
+                                    navController = navController,
+                                    viewModel = searchBooksViewModel
+                                )
+                            }
+
+                            composable("editImportedBook") {
+                                val selectedBook by searchBooksViewModel.selectedBook.collectAsState()
+                                EditImportedBookScreen(
+                                    navController = navController,
+                                    viewModel = userBooksViewModel,
+                                    searchViewModel = searchBooksViewModel
+                                )
+                            }
+
+                            composable(
+                                route = "scanIsbn?source={source}&input={input}",
+                                arguments = listOf(
+                                    navArgument("source") {
+                                        type = NavType.StringType
+                                        defaultValue = "searchBooks"
+                                    },
+                                    navArgument("input") {
+                                        type = NavType.StringType
+                                        defaultValue = "camera"
                                     }
-                                },
-                                onSearchOnline = { navController.navigate("searchBooks") },
-                                viewModel = userBooksViewModel
-                            )
-                        }
+                                )
+                            ) { backStackEntry ->
+                                val source = backStackEntry.arguments?.getString("source") ?: "searchBooks"
+                                val input = backStackEntry.arguments?.getString("input") ?: "camera"
 
-                        composable("searchBooks") {
-                            SearchBooksScreen(
-                                navController = navController,
-                                viewModel = searchBooksViewModel
-                            )
-                        }
+                                ScanIsbnScreen(
+                                    navController = navController,
+                                    source = source,
+                                    input = input,
+                                    onBackToCaller = {
+                                        navController.navigate(source) {
+                                            popUpTo(source) { inclusive = true }
+                                        }
+                                    },
+                                    searchViewModel = searchBooksViewModel
+                                )
+                            }
 
-                        composable("editImportedBook") {
-                            val selectedBook by searchBooksViewModel.selectedBook.collectAsState()
-                            EditImportedBookScreen(
-                                navController = navController,
-                                viewModel = userBooksViewModel,
-                                searchViewModel = searchBooksViewModel,
-                            )
-                        }
+                            composable("bookDetails/{bookId}") { backStackEntry ->
+                                val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
+                                BookDetailsScreen(
+                                    bookId = bookId,
+                                    onBack = { navController.popBackStack() },
+                                    onEdit = { bookId -> navController.navigate("editBook/$bookId") },
+                                    viewModel = userBooksViewModel
+                                )
+                            }
 
-                        composable(
-                            route = "scanIsbn?source={source}&input={input}",
-                            arguments = listOf(
-                                navArgument("source") {
-                                    type = NavType.StringType
-                                    defaultValue = "searchBooks"
-                                },
-                                navArgument("input") {
-                                    type = NavType.StringType
-                                    defaultValue = "camera"
-                                }
-                            )
-                        ) { backStackEntry ->
-                            val source = backStackEntry.arguments?.getString("source") ?: "searchBooks"
-                            val input = backStackEntry.arguments?.getString("input") ?: "camera"
-
-                            ScanIsbnScreen(
-                                navController = navController,
-                                source = source,
-                                input = input,
-                                onBackToCaller = {
-                                    navController.navigate(source) {
-                                        popUpTo(source) { inclusive = true }
-                                    }
-                                },
-                                searchViewModel = searchBooksViewModel
-                            )
-
-
-                        }
-
-                        composable("bookDetails/{bookId}") { backStackEntry ->
-                            val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
-                            BookDetailsScreen(
-                                bookId = bookId,
-                                onBack = { navController.popBackStack() },
-                                onEdit = { bookId -> navController.navigate("editBook/$bookId") },
-                                viewModel = userBooksViewModel
-                            )
-                        }
-
-                        composable("editBook/{bookId}") { backStackEntry ->
-                            val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
-                            EditBookScreen(
-                                bookId = bookId,
-                                onBack = { navController.popBackStack() },
-                                viewModel = userBooksViewModel
-                            )
+                            composable("editBook/{bookId}") { backStackEntry ->
+                                val bookId = backStackEntry.arguments?.getString("bookId")?.toIntOrNull()
+                                EditBookScreen(
+                                    bookId = bookId,
+                                    onBack = { navController.popBackStack() },
+                                    viewModel = userBooksViewModel
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
+

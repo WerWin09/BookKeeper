@@ -10,8 +10,6 @@ class BookKeeperApp : Application() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
 
-        FirebaseAuth.getInstance().signOut()
-
         // Globalny przechwyt wyjątków
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             Log.e("BookKeeper_DEBUG", "Nieprzechwycony wyjątek: ${throwable.localizedMessage}", throwable)

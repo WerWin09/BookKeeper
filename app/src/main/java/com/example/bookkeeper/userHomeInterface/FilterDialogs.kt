@@ -8,7 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import com.example.bookkeeper.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,13 +27,33 @@ fun CombinedFilterDialog(
 ) {
     if (!showDialog) return
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Filtruj książki") },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                // KATEGORIE
-                Text("Kategoria", style = MaterialTheme.typography.titleMedium)
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            color = BackgroundColor,
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                Text(
+                    "Filtruj książki",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.LightGray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // KATEGORIA
+                Text(
+                    "Kategoria",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MainColor
+                )
                 categories.forEach { cat ->
                     FilterRow(
                         label = cat,
@@ -38,10 +61,15 @@ fun CombinedFilterDialog(
                         onClick = { onCategorySelected(cat) }
                     )
                 }
-                Spacer(Modifier.height(12.dp))
 
-                // AUTORZY (zamiast tagów)
-                Text("Autor", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // AUTOR
+                Text(
+                    "Autor",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MainColor
+                )
                 authors.forEach { author ->
                     FilterRow(
                         label = author,
@@ -49,15 +77,20 @@ fun CombinedFilterDialog(
                         onClick = { onAuthorSelected(author) }
                     )
                 }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Zamknij")
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Przycisk Zamknij
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Zamknij", color = Color.LightGray)
+                    }
+                }
             }
         }
-    )
+    }
 }
+
 
 
 @Composable
@@ -71,10 +104,20 @@ private fun FilterRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(0.dp)
+            .padding(vertical = 8.dp)
     ) {
-        RadioButton(selected = isSelected, onClick = onClick)
-        Spacer(Modifier.width(0.dp))
-        Text(label)
+        RadioButton(
+            selected = isSelected,
+            onClick = onClick,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            label,
+            color = Color.LightGray,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
+
+

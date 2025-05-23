@@ -1,6 +1,7 @@
 package com.example.bookkeeper.userHomeInterface
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Card
@@ -26,10 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import com.example.bookkeeper.dataRoom.BookEntity
+import com.example.bookkeeper.ui.theme.SecondBackgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,9 +52,10 @@ fun BookItemCard(book: BookEntity, onClick: () -> Unit)
             .width(140.dp)
             .height(200.dp)
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF59D)), // żółty
+        colors = CardDefaults.cardColors(containerColor = SecondBackgroundColor),
         elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+    )
+ {
         Column(
             modifier = Modifier
                 .fillMaxSize()

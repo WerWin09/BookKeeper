@@ -27,20 +27,27 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
 
-        setContent {
-            BookKeeperTheme {
-                val context = LocalContext.current
-
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AuthScreen(
-                        onAuthSuccess = {
-                            context.startActivity(Intent(context, UserHomeActivity::class.java))
-                            (context as? ComponentActivity)?.finish()
-                        },
-                        modifier = Modifier.padding(innerPadding)
-                    )
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+            // Użytkownik jest już zalogowany, przejdź do UserHomeActivity
+            startActivity(Intent(this, UserHomeActivity::class.java))
+            finish()
+        } else {
+            // Nie ma zalogowanego użytkownika – pokaż ekran logowania
+            setContent {
+                BookKeeperTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        AuthScreen(
+                            onAuthSuccess = {
+                                startActivity(Intent(this, UserHomeActivity::class.java))
+                                finish()
+                            },
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
     }
 }
+

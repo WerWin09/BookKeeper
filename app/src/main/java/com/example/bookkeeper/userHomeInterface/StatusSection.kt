@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.bookkeeper.dataRoom.BookEntity
+import com.example.bookkeeper.ui.theme.BackgroundColor
 
 @Composable
 fun StatusSection(
@@ -26,11 +27,10 @@ fun StatusSection(
     onSectionClick: () -> Unit,
     onBookClick: (Int) -> Unit
 ) {
-    // cały bloczek w zielonym tle
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFA5D6A7))   // jasna zieleń
+            .background(color = BackgroundColor)
             .padding(vertical = 12.dp)
     ) {
         Column {
@@ -60,7 +60,7 @@ fun StatusSection(
                     Text(
                         text = "Nie posiadasz żadnej przypisanej książki w tej kategorii",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black
+                        color = Color.LightGray
                     )
                 }
             } else {
