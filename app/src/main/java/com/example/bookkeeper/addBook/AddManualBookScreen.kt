@@ -1,4 +1,4 @@
-package com.example.bookkeeper.userHomeInterface
+package com.example.bookkeeper.addBook
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -20,28 +20,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bookkeeper.dataRoom.BookEntity
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 import com.example.bookkeeper.utils.Constants.statusOptions
-
-import androidx.compose.material.icons.filled.Photo
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
-import kotlinx.coroutines.delay
 import androidx.compose.ui.window.Dialog
-import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import com.example.bookkeeper.R
-import androidx.compose.ui.layout.ContentScale
 import com.example.bookkeeper.ui.theme.*
+import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,6 +90,7 @@ fun ManualAddBookScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Dodaj książkę ręcznie", color = Color.Black) },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
                 navigationIcon = {
                     IconButton(onClick = onBackToHome) {
@@ -156,7 +148,8 @@ fun ManualAddBookScreen(
                     modifier = Modifier
                         .size(150.dp)
                         .align(Alignment.CenterHorizontally)
-                        .padding(4.dp),
+                        .padding(4.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium),
                     contentAlignment = Alignment.Center
                 ) {
                     if (displayBitmap != null) {
@@ -453,6 +446,6 @@ fun ManualAddBookScreen(
                     }
                 }
             }
-        )
+        }
     }
 }

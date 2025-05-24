@@ -26,6 +26,7 @@ import com.example.bookkeeper.ui.theme.BookKeeperTheme
 import com.example.bookkeeper.utils.UserBooksViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.graphics.Color
+import com.example.bookkeeper.addBook.ManualAddBookScreen
 import com.example.bookkeeper.ui.theme.IconBottomMenu
 import com.example.bookkeeper.ui.theme.IconBottomMenuFocus
 import com.example.bookkeeper.ui.theme.ThirdBackgroundColor
@@ -234,7 +235,6 @@ class UserHomeActivity : ComponentActivity() {
 
                                 ScanIsbnScreen(
                                     navController = navController,
-                                    source = source,
                                     input = input,
                                     onBackToCaller = {
                                         navController.navigate(source) {

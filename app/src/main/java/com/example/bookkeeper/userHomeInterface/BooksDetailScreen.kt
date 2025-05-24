@@ -23,7 +23,9 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Photo
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.asImageBitmap
+import com.example.bookkeeper.ui.theme.*
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -44,8 +46,18 @@ fun BookDetailsScreen(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Usunąć książkę?") },
-            text = { Text("Czy na pewno chcesz usunąć tę książkę? Tej operacji nie można cofnąć.") },
+            title = {
+                Text(
+                    "Usunąć książkę?",
+                    color = Color.White
+                )
+            },
+            text = {
+                Text(
+                    "Czy na pewno chcesz usunąć tę książkę? Tej operacji nie można cofnąć.",
+                    color = Color.White
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -53,30 +65,38 @@ fun BookDetailsScreen(
                         onBack()
                     }
                 ) {
-                    Text("Usuń", color = MaterialTheme.colorScheme.error)
+                    Text("Usuń", color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Anuluj")
+                    Text("Anuluj", color = Color.White)
                 }
-            }
+            },
+            containerColor = BackgroundColor
         )
     }
 
+
     Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Szczegóły książki") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
+                title = { Text("Szczegóły książki", color = Color.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Wróć",
+                                                    tint = Color.Black)
                     }
                 },
                 actions = {
                     book?.let { nonNullBook ->
                         IconButton(onClick = { onEdit(nonNullBook.id) }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edytuj")
+                            Icon(Icons.Default.Edit, contentDescription = "Edytuj",
+                                                    tint = Color.Black)
                         }
                         IconButton(
                             onClick = { showDeleteConfirmation = true }
@@ -84,7 +104,7 @@ fun BookDetailsScreen(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Usuń",
-                                tint = MaterialTheme.colorScheme.error
+                                tint =  Color.Red
                             )
                         }
                     }
@@ -104,10 +124,11 @@ fun BookDetailsScreen(
         } else {
             Column(
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .background(BackgroundColor)
                     .verticalScroll(rememberScrollState())
+                    .padding(padding)
+                    .padding(16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -158,7 +179,8 @@ fun BookDetailsScreen(
                             text = book.title,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold
-                            )
+                            ),
+                            color = MainColor
                         )
                         InfoRow(label = "Autor:", value = book.author)
                         InfoRow(label = "Status:", value = book.status)
@@ -168,11 +190,10 @@ fun BookDetailsScreen(
                         }
 
                         book.rating?.let {
-                            InfoRow(
-                                label = "Ocena:",
-                                value = "★".repeat(it) + "☆".repeat(5 - it)
-                            )
+                            InfoRow(label = "Ocena:", rating = it)
                         }
+
+
                     }
                 }
 
@@ -217,7 +238,8 @@ fun BookDetailsScreen(
                         text = "Opis:",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
-                        )
+                        ),
+                        color = Color.White
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -225,6 +247,31 @@ fun BookDetailsScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, rating: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            ),
+            modifier = Modifier.widthIn(min = 100.dp)
+        )
+        Row {
+            repeat(rating) {
+                Text("★", color = MainColor, fontSize = MaterialTheme.typography.titleMedium.fontSize)
+            }
+            repeat(5 - rating) {
+                Text("☆", color = Color.Gray, fontSize = MaterialTheme.typography.titleMedium.fontSize)
             }
         }
     }
@@ -240,13 +287,14 @@ private fun InfoRow(label: String, value: String) {
             text = label,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = Color.White // lub inny kolor etykiety
             ),
             modifier = Modifier.widthIn(min = 100.dp)
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White
         )
     }
 }

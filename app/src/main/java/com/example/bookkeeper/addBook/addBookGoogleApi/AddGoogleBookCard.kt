@@ -3,7 +3,6 @@ package com.example.bookkeeper.addBook.addBookGoogleApi
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +23,7 @@ fun GoogleBookCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = item.volumeInfo.title ?: "Brak tytułu",
+                text = item.volumeInfo.title,
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White
             )

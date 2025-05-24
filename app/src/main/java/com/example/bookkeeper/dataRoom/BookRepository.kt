@@ -5,20 +5,17 @@ import android.net.Uri
 import android.util.Log
 import com.example.bookkeeper.userHomeInterface.data.saveToLocalCache
 import com.example.bookkeeper.utils.hasInternet
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
-import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import java.io.IOException
 
 

@@ -1,9 +1,6 @@
 package com.example.bookkeeper.googleBooksApi
 
 //model danych - odpowiada strukturze JSON z Google Books
-data class GoogleBookResponse(
-    val items: List<GoogleBookItem>?
-)
 
 data class GoogleBookItem(
     val volumeInfo: VolumeInfo

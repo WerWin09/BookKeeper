@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.ui.theme.SecondBackgroundColor
@@ -95,11 +96,15 @@ fun BookItemCard(book: BookEntity, onClick: () -> Unit)
             Text(
                 text = book.title,
                 style = MaterialTheme.typography.titleSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
                 maxLines = 2
             )
             Text(
                 text = book.author,
                 style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
                 maxLines = 1
             )
         }

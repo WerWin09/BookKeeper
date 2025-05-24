@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.bookkeeper.utils.await
 import com.google.mlkit.vision.common.InputImage
@@ -34,7 +33,6 @@ import android.content.Intent
 import android.provider.Settings
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import androidx.core.app.ActivityCompat
 import android.os.Build
 import androidx.compose.ui.graphics.Color
 import com.example.bookkeeper.ui.theme.*
@@ -43,7 +41,6 @@ import com.example.bookkeeper.ui.theme.*
 @Composable
 fun ScanIsbnScreen(
     navController: NavController,
-    source: String,
     input: String,
     onBackToCaller: () -> Unit,
     searchViewModel: SearchBooksViewModel

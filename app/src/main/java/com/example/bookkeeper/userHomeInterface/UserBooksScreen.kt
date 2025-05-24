@@ -20,12 +20,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.bookkeeper.R
 import com.example.bookkeeper.ui.theme.BackgroundColor
-import com.example.bookkeeper.ui.theme.MainColor
 import com.example.bookkeeper.utils.Constants
 import androidx.compose.material.icons.filled.Logout
-import com.example.bookkeeper.ui.theme.SecondBackgroundColor
+import com.example.bookkeeper.ui.theme.*
+import androidx.compose.ui.res.painterResource
+import com.example.bookkeeper.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ fun UserBooksScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Twoje książki", color = Color.Black) },
+                title = { Text("BookKeeper", color = Color.Black) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MainColor),
                 actions = {
