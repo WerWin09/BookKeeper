@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,8 +18,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import com.example.bookkeeper.ui.theme.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,15 +99,20 @@ fun EditBookScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Edytuj książkę") },
+                title = { Text("Edytuj książkę", color = Color.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Wróć")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wróć", tint = Color.Black)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MainColor),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
+
         }
     ) { padding ->
         if (bookState == null) {
@@ -121,10 +129,17 @@ fun EditBookScreen(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
+                    .background(BackgroundColor)
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
-            ) {
-                Text(text = "Okładka:", style = MaterialTheme.typography.titleMedium)
+            )
+                {
+                    Text(
+                        text = "Okładka:",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -152,20 +167,43 @@ fun EditBookScreen(
                     }
                 }
 
-                Button(
-                    onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    Text(if (imageUri != null || !coverPath.isNullOrEmpty()) "Zmień okładkę" else "Dodaj okładkę")
-                }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        OutlinedButton(
+                            onClick = { galleryLauncher.launch("image/*") },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = BackgroundColor,
+                                contentColor = MainColor
+                            )
+                        ) {
+                            Text(
+                                text = if (imageUri != null || !coverPath.isNullOrEmpty()) "Zmień okładkę" else "Dodaj okładkę"
+                            )
+                        }
+                    }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Tytuł") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("Tytuł", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -173,8 +211,18 @@ fun EditBookScreen(
                 OutlinedTextField(
                     value = author,
                     onValueChange = { author = it },
-                    label = { Text("Autor") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("Autor", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
+
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -187,9 +235,18 @@ fun EditBookScreen(
                     OutlinedTextField(
                         value = status,
                         onValueChange = {},
-                        label = { Text("Status *") },
+                        label = { Text("Status", color = Color.White) },
                         readOnly = true,
                         modifier = Modifier.menuAnchor(),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = SecondBackgroundColor,
+                            unfocusedBorderColor = SecondBackgroundColor,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White,
+                            containerColor = SecondBackgroundColor
+                        ),
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
                         }
@@ -215,8 +272,17 @@ fun EditBookScreen(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { category = it },
-                    label = { Text("Kategoria") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("Kategoria", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -224,8 +290,17 @@ fun EditBookScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Opis") },
+                    label = { Text("Opis", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = SecondBackgroundColor,
+                        unfocusedBorderColor = SecondBackgroundColor,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White,
+                        containerColor = SecondBackgroundColor
+                    ),
                     singleLine = false,
                     maxLines = 5
                 )
@@ -250,6 +325,12 @@ fun EditBookScreen(
                         viewModel.saveBookWithCover(updatedBook, imageUri = imageUri)
                         onBack()
                     },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MainColor,
+                        contentColor = Color.Black,
+                        disabledContainerColor = MainColor.copy(alpha = 0.5f),
+                        disabledContentColor = Color.Black.copy(alpha = 0.5f)
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp)
