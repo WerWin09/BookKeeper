@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.Color
 import com.example.bookkeeper.ui.theme.*
+import com.example.bookkeeper.uiComponents.RatingBar
 import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -315,25 +316,15 @@ fun ManualAddBookScreen(
                     )
                 )
 
-                OutlinedTextField(
-                    value = rating?.toString() ?: "",
-                    onValueChange = {
-                        rating = it.toIntOrNull()?.takeIf { it in 0..5 }
-                    },
-                    label = { Text("Ocena (0-5)", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    shape = roundedShape,
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = SecondBackgroundColor,
-                        unfocusedBorderColor = SecondBackgroundColor,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White,
-                        containerColor = SecondBackgroundColor
-                    )
+                Text(
+                    text = "Ocena:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+
+                RatingBar(
+                    rating = rating ?: 0,
+                    onRatingChange = { rating = it }
                 )
 
                 Row(

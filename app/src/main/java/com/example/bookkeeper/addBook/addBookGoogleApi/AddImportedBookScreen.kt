@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.bookkeeper.userHomeInterface.UserBooksViewModel
 import com.example.bookkeeper.ui.theme.*
+import com.example.bookkeeper.uiComponents.RatingBar
 import com.example.bookkeeper.utils.Constants.statusOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -230,7 +231,7 @@ fun EditImportedBookScreen(
                 OutlinedTextField(
                     value = status,
                     onValueChange = {},
-                    label = { Text("Status *", color = Color.White) },
+                    label = { Text("Status", color = Color.White) },
                     readOnly = true,
                     modifier = Modifier.menuAnchor().fillMaxWidth().background(SecondBackgroundColor, shape = MaterialTheme.shapes.extraSmall),
                     trailingIcon = {
@@ -264,23 +265,16 @@ fun EditImportedBookScreen(
             }
 
 
-            OutlinedTextField(
-                value = rating?.toString().orEmpty(),
-                onValueChange = { rating = it.toIntOrNull()?.takeIf { it in 1..5 } },
-                label = { Text("Ocena (1–5)", color = Color.White) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-                    .background(SecondBackgroundColor, shape = MaterialTheme.shapes.extraSmall),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = SecondBackgroundColor,
-                    unfocusedBorderColor = SecondBackgroundColor,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    cursorColor = Color.White
-                )
-            )
+     Text(
+         text = "Ocena:",
+         style = MaterialTheme.typography.titleMedium,
+         color = Color.White
+     )
+
+     RatingBar(
+         rating = rating ?: 0,
+         onRatingChange = { rating = it }
+     )
 
 
             Row(Modifier.fillMaxWidth(),

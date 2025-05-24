@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import com.example.bookkeeper.ui.theme.*
+import com.example.bookkeeper.uiComponents.RatingBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -307,7 +308,24 @@ fun EditBookScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Ocena:",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    RatingBar(
+                        rating = rating ?: 0,
+                        onRatingChange = { rating = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
                     onClick = {
                         val updatedBook = bookState!!.copy(
                             title = title,
@@ -342,3 +360,5 @@ fun EditBookScreen(
         }
     }
 }
+
+
