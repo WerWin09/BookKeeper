@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookkeeper.dataRoom.BookEntity
 import com.example.bookkeeper.utils.Constants.statusOptions
 import androidx.compose.material.icons.filled.Photo
@@ -22,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.asImageBitmap
-import kotlinx.coroutines.delay
 
 
 @OptIn(ExperimentalMaterial3Api::class)

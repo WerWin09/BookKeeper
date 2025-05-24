@@ -1,7 +1,5 @@
 package com.example.bookkeeper.userHomeInterface
 
-import android.R.attr.textColor
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,21 +18,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.bookkeeper.ui.theme.BackgroundColor
 import com.example.bookkeeper.utils.Constants
-import androidx.compose.material.icons.filled.Logout
 import com.example.bookkeeper.ui.theme.*
-import androidx.compose.ui.res.painterResource
 import com.example.bookkeeper.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserBooksScreen(
+    modifier: Modifier = Modifier,
     viewModel: UserBooksViewModel,
     onAddBook: () -> Unit,
     onBookClick: (Int) -> Unit,
-    onStatusClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onStatusClick: (String) -> Unit
 ) {
     val allBooks by viewModel.books.collectAsStateWithLifecycle()
     val statuses = Constants.statusOptions

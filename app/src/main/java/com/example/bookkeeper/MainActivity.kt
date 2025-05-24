@@ -13,10 +13,6 @@ import com.example.bookkeeper.ui.theme.BookKeeperTheme
 import com.example.bookkeeper.userAccount.AuthScreen
 import com.example.bookkeeper.userHomeInterface.UserHomeActivity
 import com.google.firebase.FirebaseApp
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material3.Text
 import com.google.firebase.auth.FirebaseAuth
 
 

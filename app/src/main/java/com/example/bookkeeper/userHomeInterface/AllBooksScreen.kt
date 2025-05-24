@@ -13,10 +13,8 @@ import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color

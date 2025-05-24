@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.bookkeeper.dataRoom.BookEntity
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material.icons.filled.Delete
@@ -190,7 +188,7 @@ fun BookDetailsScreen(
                         }
 
                         book.rating?.let {
-                            InfoRow(label = "Ocena:", rating = it)
+                            InfoRow(rating = it)
                         }
 
 
@@ -253,13 +251,13 @@ fun BookDetailsScreen(
 }
 
 @Composable
-private fun InfoRow(label: String, rating: Int) {
+private fun InfoRow(rating: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = label,
+            text = "Ocena:",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
@@ -276,6 +274,7 @@ private fun InfoRow(label: String, rating: Int) {
         }
     }
 }
+
 
 @Composable
 private fun InfoRow(label: String, value: String) {

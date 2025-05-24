@@ -7,7 +7,6 @@ import android.util.Log
 import com.example.bookkeeper.utils.resizeBitmap
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 
 fun saveToLocalCache(context: Context, docId: String, uri: Uri): String {
     val inputStream = context.contentResolver.openInputStream(uri)

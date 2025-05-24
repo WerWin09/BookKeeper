@@ -81,14 +81,6 @@ class UserBooksViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun filterByTag(tag: String) {
-        viewModelScope.launch {
-            repository.getBooksByTag(tag).collect { books ->
-                _books.value = books
-            }
-        }
-    }
-
     fun filterByAuthor(author: String) {
         viewModelScope.launch {
             repository.getBooksByAuthor(author).collect { books ->

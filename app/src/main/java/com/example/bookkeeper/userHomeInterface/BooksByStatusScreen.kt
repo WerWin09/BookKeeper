@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.*
@@ -21,9 +20,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.bookkeeper.utils.Constants
-import com.example.bookkeeper.dataRoom.BookEntity
-import com.example.bookkeeper.userHomeInterface.CombinedFilterDialog
 import com.example.bookkeeper.R
 import com.example.bookkeeper.ui.theme.*
 
